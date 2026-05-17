@@ -14,12 +14,19 @@ progression. Do not skip levels — each one assumes the previous is solid. 🧱
 
 ## 🧭 How to Use This Roadmap
 
-- ⬇️ Work **top to bottom**. Levels build on each other — Level 4 makes no sense without Level 2 reflexes.
-- 🔨 For every level, **build the project(s)** before moving on. Reading ≠ knowing.
-- 🚧 Treat the **"You've mastered this level when…"** checklist as a **gate, not a suggestion**. Be honest with yourself.
-- 📖 Read code, not just tutorials. The Go **standard library** is the best Go textbook ever written.
-- ✍️ Write Go **every day**. Reading about Go does not make you good at Go — fingers on keys does.
-- 🔁 Expect to revisit earlier levels. Mastery is a spiral, not a ladder.
+- ⬇️ **Work top to bottom.** Levels build on each other — Level 4 makes no sense without Level 2 reflexes.
+  - Don't jump ahead because a topic looks exciting; the prerequisites are load-bearing.
+  - If a later topic keeps confusing you, the gap is almost always in an earlier level.
+- 🔨 **Build the project(s)** for every level before moving on. Reading ≠ knowing.
+  - Type the code yourself; do not copy-paste.
+  - Break it on purpose, then fix it — that's where understanding forms.
+- 🚧 **Treat each checklist as a gate, not a suggestion.** Be honest with yourself.
+  - "I could probably do that" is a fail. "I did that, unaided" is a pass.
+- 📖 **Read code, not just tutorials.** The Go **standard library** is the best Go textbook ever written.
+  - Pick one stdlib file per week and read it end to end.
+- ✍️ **Write Go every day.** Reading about Go does not make you good at Go — fingers on keys does.
+  - Even 20 focused minutes beats a weekend binge once a month.
+- 🔁 **Expect to revisit earlier levels.** Mastery is a spiral, not a ladder.
 
 ### 🗺️ The 5 Levels at a Glance
 
@@ -64,10 +71,19 @@ progression. Do not skip levels — each one assumes the previous is solid. 🧱
 
 ## 🛠️ 1.1 Setup & Tooling
 
-- 📥 Install Go (always use the **latest stable release** — Go has a strong backward-compatibility promise, so newer is safe)
-- 📂 Understand `GOROOT`, `GOPATH`, the **module cache** (`$GOPATH/pkg/mod`), and why modules made `GOPATH` mostly irrelevant
-- 🧰 Editor setup: **VS Code + `gopls`** or **GoLand** — get autocomplete, jump-to-definition, inline errors, and format-on-save working *before* you write real code
-- ⌨️ The `go` command is your daily driver:
+- 📥 **Install Go** — always the **latest stable release**
+  - Go's backward-compatibility promise means newer is safe; never start on an old version
+  - Verify with `go version`; know how to manage multiple versions (`go install golang.org/dl/...`)
+  - Understand the release cadence (two minor releases/year) and what a patch release fixes
+- 📂 **Environment & module cache**
+  - `GOROOT` (where Go itself lives) vs `GOPATH` (legacy workspace) — know the difference and why it rarely matters now
+  - The module cache at `$GOPATH/pkg/mod` and how `GONOSUMCHECK`/`GOFLAGS`/`GOPROXY` affect downloads
+  - `GOBIN` and putting `go install`-ed tools on your `PATH`
+- 🧰 **Editor setup** — VS Code + `gopls`, or GoLand
+  - Autocomplete, jump-to-definition, find-references, inline diagnostics
+  - **Format-on-save** wired up *before* writing real code
+  - Run-test and debug-test from the gutter; integrated debugger (`dlv`) working
+- ⌨️ **The `go` command** — your daily driver:
 
 ```bash
 go mod init example.com/myapp   # 🆕 start a module
@@ -88,17 +104,51 @@ go clean -modcache              # 🧹 nuke the module cache when things get wei
 
 The core of the language. Go is deliberately small — learn all of it.
 
-- 🔢 Variables, constants, `iota` (and how `iota` builds enum-like sequences)
-- 🧮 Basic types, **zero values** (every type has one — internalize this), type conversions (Go has no implicit conversion)
-- 🔀 Control flow: `if`, `for` (Go's *only* loop keyword), `switch` (no fallthrough by default), labels
-- 🧩 Functions: multiple return values, **named returns** (use sparingly), variadics, functions as values, closures
-- ⏮️ `defer` — execution order (LIFO), argument evaluation timing, common loop pitfalls
-- 📦 Arrays vs **slices** — length vs capacity, `append` growth, slicing, **aliasing bugs** (the #1 beginner trap)
-- 🗺️ **Maps** — zero value (nil maps panic on write!), comma-ok idiom, deletion, randomized iteration order
-- 🔤 Strings, runes, bytes — `[]byte` ↔ `string` conversions, UTF-8, why `len(s)` is bytes not characters
-- 🏗️ Structs, **struct embedding**, struct tags, comparability
-- 👉 Pointers — and *why Go deliberately has no pointer arithmetic*
-- 📂 Packages, exported vs unexported (capitalization rule), `go.mod` / `go.sum`
+- 🔢 **Variables & constants**
+  - `var`, short declaration `:=`, block declarations, shadowing pitfalls
+  - Typed vs untyped constants; constant expressions evaluated at compile time
+  - `iota` — counters, skipping values, bit-flag patterns (`1 << iota`)
+- 🧮 **Types & zero values**
+  - Numeric types, overflow/wrap behavior, `int` vs `int64` portability
+  - **Every type has a zero value** — `0`, `""`, `false`, `nil` — internalize this
+  - Explicit conversions only (no implicit numeric promotion); `byte`/`rune` aliases
+- 🔀 **Control flow**
+  - `if` with init statement; no parentheses, mandatory braces
+  - `for` is the *only* loop — three-clause, while-style, infinite, `range`
+  - `switch` — expression vs tagless, no implicit fallthrough, `fallthrough`, type switch preview
+  - Labels with `break`/`continue`; `goto` (and why you almost never use it)
+- 🧩 **Functions**
+  - Multiple return values; the `(result, err)` convention
+  - Named returns — when they clarify, when they hide bugs
+  - Variadics (`...T`), passing a slice as variadic
+  - First-class functions, closures, capturing loop variables correctly
+- ⏮️ **`defer`**
+  - LIFO execution order
+  - Arguments evaluated at `defer` time, not at execution time
+  - Deferring in loops (resource leaks), `defer` + named returns interaction
+- 📦 **Arrays vs slices**
+  - Arrays are values (copied); slices are headers (ptr/len/cap)
+  - `append` growth, capacity doubling, reslicing, `s[low:high:max]` full-slice expression
+  - **Aliasing bugs** — sharing backing arrays, `copy`, the #1 beginner trap
+- 🗺️ **Maps**
+  - Zero value is `nil`; reading is fine, **writing panics**
+  - Comma-ok idiom (`v, ok := m[k]`), `delete`, length
+  - Randomized iteration order (intentional); maps are not safe for concurrent writes
+- 🔤 **Strings, runes, bytes**
+  - Strings are immutable UTF-8 byte sequences; `len` is bytes, not characters
+  - `range` over a string yields runes + byte offsets
+  - `[]byte` ↔ `string` conversions (and their copy cost), `strings`/`unicode/utf8`
+- 🏗️ **Structs**
+  - Field ordering, tags, comparability, anonymous structs
+  - **Embedding** — method/field promotion, name collisions, embedding interfaces
+  - Value vs pointer receivers (preview of methods)
+- 👉 **Pointers**
+  - `&` / `*`, nil pointer dereference, when to take a pointer
+  - *Why Go deliberately has no pointer arithmetic* (safety, GC)
+- 📂 **Packages & modules**
+  - Exported vs unexported by capitalization
+  - `go.mod` (requires, go directive), `go.sum`, semantic import versioning
+  - `import` paths, package name vs path, `internal/` visibility rule
 
 ```go
 package main
@@ -128,17 +178,23 @@ if err != nil {
 }
 ```
 
-- 🚫 `if err != nil` is not boilerplate to resent — it's the language being honest about what can fail
-- 🧵 Errors are just values; you can compare, wrap, and inspect them (you'll go deep in Level 2)
-- 🙅 Never use `_` to discard an error unless you can *explain out loud* why it's safe
+- 🚫 **`if err != nil` is not boilerplate to resent**
+  - It's the language being honest about what can fail
+  - Every ignored error is a future incident waiting for a bad input
+- 🧵 **Errors are just values**
+  - You can return them, store them, compare them, and wrap them
+  - The `error` interface is one method: `Error() string` (full depth in Level 2)
+- 🙅 **Discarding errors**
+  - Never use `_` on an error unless you can *explain out loud* why it's safe
+  - Common safe cases (and their reasoning): `fmt.Fprintf` to a buffer, `defer f.Close()` on a read-only file — know *why*
 
 ## 🧪 Practice
 
 Build all three. Small, but finish them. 🏁
 
-- 🔁 A CLI that **reverses a string** and **counts words**.
-- 🎲 A **number-guessing game** (random target, hints, attempt count).
-- 📄 A program that **reads a file** and prints **line / word / byte counts** (a tiny `wc`).
+- 🔁 **String reverser + word counter CLI** — read stdin/args, handle Unicode correctly.
+- 🎲 **Number-guessing game** — random target, higher/lower hints, attempt count, replay loop.
+- 📄 **Tiny `wc`** — read a file, print line / word / byte counts, handle missing-file errors.
 
 ## ✅ Level 1 Mastery Checklist
 
@@ -160,20 +216,43 @@ Build all three. Small, but finish them. 🏁
 
 ## 🧩 2.1 Interfaces & Composition
 
-- 🤝 **Implicit** interface satisfaction — *"accept interfaces, return structs"*
-- 🤏 Prefer **small interfaces** (`io.Reader`, `io.Writer`, `error`, `fmt.Stringer`) — one or two methods
-- 🕳️ Interface values are `(type, value)` pairs — master the **`nil`-interface pitfall** (a non-nil interface holding a nil pointer)
-- 🔎 Type assertions (`v, ok := x.(T)`) and type switches
-- 🧬 **Composition over inheritance** — struct & interface embedding instead of class hierarchies
-- 📐 Define interfaces **where they're consumed**, not where they're implemented
+- 🤝 **Implicit satisfaction**
+  - No `implements` keyword; a type satisfies an interface by having the methods
+  - *"Accept interfaces, return structs"* — and why this keeps APIs flexible
+- 🤏 **Small interfaces**
+  - `io.Reader`, `io.Writer`, `error`, `fmt.Stringer` — one or two methods
+  - Interface segregation; composing big interfaces from small ones (`io.ReadWriter`)
+- 🕳️ **Interface values**
+  - The `(type, value)` pair model
+  - The **`nil`-interface pitfall**: a non-nil interface holding a nil concrete pointer
+  - Comparing interfaces, panics from comparing uncomparable dynamic types
+- 🔎 **Type assertions & switches**
+  - `v, ok := x.(T)` safe form vs panicking form
+  - Type switch on dynamic type; handling the `default` case
+- 🧬 **Composition over inheritance**
+  - Struct embedding for code reuse; interface embedding for contract reuse
+  - Decorator/middleware patterns built from embedding
+- 📐 **Where to define interfaces**
+  - Define them **where they're consumed**, not where implemented
+  - Avoid speculative interfaces with a single implementation
 
 ## ⚠️ 2.2 Errors, Properly
 
-- 🏁 The `error` interface and **sentinel errors** with `errors.Is`
-- 🧱 Custom error **types** and `errors.As` for extracting structured data
-- 🎁 **Wrapping** with `fmt.Errorf("...: %w", err)` to add context without losing the chain
-- 💣 `panic` / `recover` — and *why you almost never use them for control flow* (only truly exceptional, unrecoverable situations)
-- 📜 Designing the **error contract** for your package's callers — what's a sentinel, what's wrapped, what's documented
+- 🏁 **Sentinel errors**
+  - `var ErrNotFound = errors.New("...")`, compared with `errors.Is`
+  - When sentinels are appropriate vs when they over-couple callers
+- 🧱 **Custom error types**
+  - Structs implementing `error`, carrying fields (codes, IDs)
+  - Extracting with `errors.As`; pointer vs value receiver on `Error()`
+- 🎁 **Wrapping**
+  - `fmt.Errorf("...: %w", err)` adds context, preserves the chain
+  - `%w` vs `%v` (wrap vs flatten); multiple `%w` (Go 1.20+ `errors.Join`)
+- 💣 **`panic` / `recover`**
+  - Only for truly exceptional, unrecoverable situations — not control flow
+  - `recover` only works in a deferred function; recovering at goroutine boundaries
+- 📜 **Error contract design**
+  - Document what errors a function returns and how to test for them
+  - Decide per-package: sentinel, typed, or opaque-with-wrap
 
 ```go
 var ErrNotFound = errors.New("not found")
@@ -195,10 +274,18 @@ if errors.Is(err, ErrNotFound) { /* ... */ }
 
 ## 🧬 2.3 Generics
 
-- 🔧 Type parameters, **constraints**, the `constraints` package, `any` and `comparable`
-- ✅ When generics **help**: containers, algorithms, reducing duplicated type-specific code
-- ❌ When generics **hurt**: premature abstraction, hurting readability for a one-off
-- 🆚 Generic functions vs generic types — and type **inference** plus its limits
+- 🔧 **Type parameters & constraints**
+  - `func F[T any](...)`, type sets, the `constraints` package
+  - `any` vs `comparable`; defining custom constraint interfaces with unions (`~int | ~string`)
+- ✅ **When generics help**
+  - Generic containers (`Set[T]`, `Stack[T]`), algorithms (`Map`, `Filter`, `Reduce`)
+  - Eliminating `interface{}` + type-assertion boilerplate
+- ❌ **When generics hurt**
+  - Premature abstraction, one-off use, harming readability
+  - When an interface or plain function is simpler
+- 🆚 **Functions vs types & inference**
+  - Generic functions vs generic types and methods
+  - Type inference rules and where you must specify type arguments explicitly
 
 > 🧘 **Maturity signal:** choosing *not* to use generics when an interface or
 > plain function is clearer. Reach for the simplest tool that works.
@@ -207,23 +294,44 @@ if errors.Is(err, ErrNotFound) { /* ... */ }
 
 The stdlib is huge and excellent. Get comfortable in the daily-driver packages:
 
-- 🔤 `fmt`, `strings`, `strconv`, `bytes`, `bufio`
-- 📦 `encoding/json` — marshal/unmarshal, tags, `omitempty`, custom `MarshalJSON`/`UnmarshalJSON`
-- ⏰ `time` — durations, the **monotonic clock**, formatting (the reference-time layout), time zones, `time.Ticker`
-- 🗂️ `io` / `os` — readers, writers, files, `io.Copy`, `io.EOF`, the streaming mindset
-- 🧮 `sort`, `slices`, `maps` — modern generic helpers that replace a lot of hand-written loops
+- 🔤 **Text & I/O building blocks**
+  - `fmt` (verbs, `Stringer`, `%+v`/`%#v`), `strings.Builder` vs concatenation
+  - `strconv` parsing/formatting, `bytes.Buffer`, `bufio.Scanner` for line input
+- 📦 **`encoding/json`**
+  - Marshal/unmarshal, struct tags, `omitempty`, `-`, embedded structs
+  - Custom `MarshalJSON`/`UnmarshalJSON`, `json.RawMessage`, streaming with `json.Decoder`
+  - Pitfalls: unexported fields, numbers as `float64`, unknown fields
+- ⏰ **`time`**
+  - `Duration` arithmetic, the **reference-time** layout string (`2006-01-02`)
+  - Monotonic vs wall clock, `time.Timer`/`Ticker` and stopping them, time zones & `Location`
+- 🗂️ **`io` / `os`**
+  - The reader/writer mindset, `io.Copy`, `io.EOF`, `io.MultiWriter`, `io.Pipe`
+  - Files, permissions, `os.Args`, `os.Getenv`, `os.Exit` (and why `defer` won't run)
+- 🧮 **`sort`, `slices`, `maps`**
+  - Generic `slices.Sort`, `slices.Contains`, `slices.Index`, `maps.Keys`
+  - Custom ordering with `slices.SortFunc`; replacing hand-written loops
 
 > 📖 **Read the source** of these packages. They are written by experts to be
 > read by you — copy their style.
 
 ## 🧪 2.5 Testing & Project Layout
 
-- 🧪 `testing` package, **table-driven tests**, subtests (`t.Run`)
-- 🛠️ Test helpers (`t.Helper()`), **golden files**, the `testdata/` convention
-- 🎛️ `go test -run`, `-v`, `-cover`, `-count=1` (defeat the test cache deliberately)
-- 📈 Benchmarks (`testing.B`) and `go test -bench`
-- 🏛️ Standard project layout: `cmd/`, `internal/`, `pkg/` — and *not* over-structuring early
-- 🧠 Read the **Go Proverbs** and **Effective Go** — internalize the philosophy
+- 🧪 **The `testing` package**
+  - Table-driven tests, subtests with `t.Run`, parallel tests with `t.Parallel()`
+  - `t.Cleanup`, `t.Setenv`, `t.TempDir`
+- 🛠️ **Fixtures & helpers**
+  - `t.Helper()` for clean failure lines, **golden files**, the `testdata/` convention
+  - Deterministic tests: inject clocks/randomness, avoid sleeps
+- 🎛️ **Running tests**
+  - `-run` regex, `-v`, `-cover`/`-coverprofile`, `-count=1` to defeat the cache
+  - `go test -race` as a habit, not an afterthought
+- 📈 **Benchmarks**
+  - `testing.B`, `b.ResetTimer`, `b.ReportAllocs`, avoiding compiler elimination
+- 🏛️ **Project layout**
+  - `cmd/` (entrypoints), `internal/` (private), `pkg/` (intentionally public)
+  - *Not* over-structuring early; let structure emerge from need
+- 🧠 **Philosophy**
+  - The Go Proverbs, *Effective Go*, "clear is better than clever"
 
 ```go
 func TestAdd(t *testing.T) {
@@ -249,9 +357,9 @@ func TestAdd(t *testing.T) {
 
 ## 🧪 Practice
 
-- 🧾 A **JSON-driven CLI**: parse config, validate it, pretty-print results.
-- 📦 A generic, well-tested `Set[T]` and `Stack[T]` with full edge-case coverage.
-- 📚 A small **library** with a clean public API, godoc comments, examples, and **≥80% coverage**.
+- 🧾 **JSON-driven CLI** — parse config, validate it, pretty-print results, exit codes.
+- 📦 **Generic `Set[T]` and `Stack[T]`** — full edge-case coverage, benchmarks.
+- 📚 **Small library** — clean public API, godoc comments, runnable examples, **≥80% coverage**.
 
 ## ✅ Level 2 Mastery Checklist
 
@@ -273,15 +381,29 @@ func TestAdd(t *testing.T) {
 
 ## 🔀 3.1 Concurrency
 
-- 🧵 Goroutines and the scheduler model (GOMAXPROCS, the M:N model)
-- 📡 **Channels** — unbuffered vs buffered, directionality, closing semantics, `range` over channels
-- 🎚️ `select`, timeouts, `default`, the empty `select{}`
-- 🔒 `sync` — `WaitGroup`, `Mutex`, `RWMutex`, `Once`, `Pool`
-- ⚛️ `sync/atomic` — and when a plain mutex is *clearer* than clever atomics
-- 🧭 `context.Context` — cancellation, deadlines, values, **propagation through every layer**
-- 🏭 Patterns: **worker pool**, **fan-in/fan-out**, **pipeline**, **bounded concurrency**
-- 🛑 **Graceful shutdown** — drain in-flight work before exiting
-- 🏁 The **race detector**: `go test -race`, `go run -race` — run it constantly
+- 🧵 **Goroutines & the scheduler**
+  - `go` statement cost, M:N model, `GOMAXPROCS`, cooperative + async preemption
+  - Why goroutines are cheap but not free; goroutine lifetime ownership
+- 📡 **Channels**
+  - Unbuffered (rendezvous) vs buffered (queue) semantics
+  - Directionality (`chan<-`, `<-chan`), closing rules, `range` over channels, nil-channel behavior
+- 🎚️ **`select`**
+  - Multiplexing, timeouts with `time.After`, `default` for non-blocking, the empty `select{}`
+  - Avoiding leaks from a blocked send in `select`
+- 🔒 **`sync`**
+  - `WaitGroup` (Add before go), `Mutex`/`RWMutex`, `Once`, `Pool`
+  - Lock granularity, defer-unlock pattern, copying a struct containing a mutex (don't)
+- ⚛️ **`sync/atomic`**
+  - `atomic.Int64`/`Bool`/`Pointer`; when a plain mutex is *clearer* than clever atomics
+- 🧭 **`context.Context`**
+  - `WithCancel`/`WithTimeout`/`WithDeadline`/`WithValue`
+  - Cancellation **propagation through every layer**; never store context in a struct; values for request-scoped data only
+- 🏭 **Concurrency patterns**
+  - Worker pool, fan-in/fan-out, pipeline, bounded concurrency (semaphore), or-done
+- 🛑 **Graceful shutdown**
+  - Signal handling, draining in-flight work, deadline on shutdown
+- 🏁 **The race detector**
+  - `go test -race`, `go run -race`; understanding a race report; run it constantly
 
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -322,11 +444,20 @@ func main() {
 }
 ```
 
-- 🧭 Routing, **middleware chains**, request context
-- 📦 JSON decode/encode, **request validation**, consistent error responses
-- 🛡️ CORS, request IDs, logging & auth middleware
-- 🛑 **Graceful shutdown** with `http.Server.Shutdown`
-- 🧰 Router choice: **`net/http` + `chi`** (idiomatic, stdlib-compatible). Alternatives: Gin, Echo, Fiber.
+- 🧭 **Routing & handlers**
+  - `http.Handler` vs `HandlerFunc`, Go 1.22 method+path patterns, path values
+  - Request lifecycle, `r.Context()`, request body limits
+- 🔗 **Middleware**
+  - The `func(http.Handler) http.Handler` pattern, chaining order, per-route vs global
+- 📦 **Request/response handling**
+  - JSON decode with `DisallowUnknownFields`, validation, consistent error responses
+  - Setting status codes correctly, streaming responses, `http.Error`
+- 🛡️ **Cross-cutting concerns**
+  - CORS, request IDs, structured logging, auth, panic-recovery middleware
+- 🛑 **Server lifecycle**
+  - Timeouts (`ReadHeaderTimeout`, `IdleTimeout`), `http.Server.Shutdown`, graceful drain
+- 🧰 **Router choice**
+  - **`net/http` + `chi`** (idiomatic, stdlib-compatible); alternatives: Gin, Echo, Fiber
 
 ## 🔌 3.3 REST API Design
 
@@ -336,11 +467,17 @@ POST   /users        PATCH  /users/{id}
 PUT    /users/{id}   DELETE /users/{id}
 ```
 
-- ✅ Correct **HTTP methods & status codes** (and meaning them)
-- 📄 Pagination, filtering, sorting, **API versioning**
-- 🔁 **Idempotency**, rate limiting
-- 📦 Consistent **error envelope** — *never leak internal errors or stack traces*
-- 📜 Document with **OpenAPI / Swagger**
+- ✅ **Methods & status codes**
+  - Correct verb semantics, 2xx/4xx/5xx meaning, `201` + `Location`, `204` for no body
+- 📄 **Collections**
+  - Pagination (offset vs cursor), filtering, sorting, sparse fieldsets
+  - API **versioning** strategy (URL vs header) and deprecation policy
+- 🔁 **Reliability semantics**
+  - Idempotency keys for unsafe retries, rate limiting, conditional requests (ETag)
+- 📦 **Error envelope**
+  - Stable machine-readable `code` + human `message`; *never leak internals or stack traces*
+- 📜 **Documentation**
+  - OpenAPI/Swagger, generated clients, contract as source of truth
 
 ```json
 { "code": "USER_NOT_FOUND", "message": "User not found" }
@@ -348,10 +485,21 @@ PUT    /users/{id}   DELETE /users/{id}
 
 ## 🐘 3.4 Databases (PostgreSQL)
 
-- 🗄️ SQL: keys, constraints, **indexes**, joins, **transactions**, isolation levels
-- 🔬 Query plans (`EXPLAIN ANALYZE`) and basic optimization — learn to *read* a plan
-- 🏭 **Production stack: PostgreSQL + `pgx` + `sqlc`** (beginner-friendly alternative: GORM)
-- 🔧 Migrations: `goose`, `golang-migrate`, or `atlas` — migrations are code, review them
+- 🗄️ **SQL fundamentals**
+  - Primary/foreign keys, constraints, normalization basics
+  - **Indexes** (B-tree, composite, partial), what makes a query use one
+  - Joins, `NULL` semantics, aggregation, common gotchas
+- 🔁 **Transactions**
+  - ACID, isolation levels, anomalies (dirty/non-repeatable/phantom), `SELECT ... FOR UPDATE`
+  - Transaction scope in Go, `defer tx.Rollback()` pattern
+- 🔬 **Performance**
+  - `EXPLAIN ANALYZE`, reading a plan, N+1 queries, connection pool sizing
+- 🏭 **Go data layer**
+  - **PostgreSQL + `pgx` + `sqlc`** (beginner-friendly alternative: GORM)
+  - `database/sql` semantics, context-aware queries, scanning into structs
+- 🔧 **Migrations**
+  - `goose`, `golang-migrate`, or `atlas`; forward-only discipline, reversible vs not
+  - Migrations are code — reviewed, versioned, tested against a real DB
 
 ```sql
 -- name: GetUser :one
@@ -374,26 +522,43 @@ if err != nil {
 🌐 Handler / Controller  →  🧠 Service / Usecase  →  🗄️ Repository  →  🐘 Database
 ```
 
-- 🚫 Keep **business logic out of HTTP handlers** — handlers translate, services decide
-- 🗄️ **Repositories own data access**; **services own rules**
-- 🧩 Use interfaces **where they aid testing or decoupling** — not everywhere
-- 🛑 Avoid **premature abstraction** — duplication is cheaper than the wrong abstraction
+- 🚫 **Thin handlers**
+  - Handlers translate transport ↔ domain; no business rules in handlers
+  - Map domain errors to HTTP status in one place
+- 🗄️ **Layer responsibilities**
+  - Repositories own data access; services own business rules; entities own invariants
+- 🧩 **Interfaces for seams**
+  - Use interfaces where they aid testing or decoupling — not everywhere
+  - Dependency injection via constructors, not globals
+- 🛑 **Avoid premature abstraction**
+  - Duplication is cheaper than the wrong abstraction
+  - Refactor toward patterns when the third use case appears, not the first
 
 ## 🔐 3.6 Authentication & Authorization
 
-- 🔑 Password hashing (`bcrypt`, `argon2`) — **never store raw passwords**
-- 🎟️ JWT access tokens + refresh tokens, with **refresh-token rotation**
-- #️⃣ Store only token **hashes**; **never log** tokens or passwords
-- 👮 RBAC / permission-based access, API keys, OAuth2 basics
-- ⏱️ Rate-limit login & OTP endpoints; **account lockout** on abuse
+- 🔑 **Password handling**
+  - `bcrypt`/`argon2` with sane cost params; **never store raw passwords**
+  - Constant-time comparison; password reset flows that don't leak account existence
+- 🎟️ **Tokens**
+  - JWT access tokens (short-lived) + refresh tokens (long-lived)
+  - **Refresh-token rotation**, reuse detection, revocation lists/families
+  - Store only token **hashes**; **never log** tokens or passwords
+- 👮 **Authorization models**
+  - RBAC vs permission/attribute-based, API keys, OAuth2/OIDC basics, scopes
+- ⏱️ **Abuse resistance**
+  - Rate-limit login & OTP endpoints, account lockout/backoff, audit auth events
 
 > 🛡️ Auth is where small mistakes become breaches. Slow down here. 🐢
 
 ## 🧪 3.7 Testing Strategy
 
-- 🧱 **Unit** (services), **integration** (repositories with `testcontainers-go`), **API** (`httptest`)
-- 🎭 Mocking with `gomock` / `mockery` — mock at boundaries, not everywhere
-- 🎯 Test the layers that hold **business value** first
+- 🧱 **Test layers**
+  - Unit (services, pure logic), integration (repositories via `testcontainers-go`), API (`httptest`)
+  - The test pyramid: many fast unit tests, fewer integration, fewest e2e
+- 🎭 **Test doubles**
+  - Mocks/fakes/stubs, `gomock`/`mockery`, mock at boundaries not internals
+- 🎯 **Prioritization**
+  - Test the layers that hold business value first; assert behavior, not implementation
 
 ## 🐳 3.8 Docker
 
@@ -411,7 +576,11 @@ EXPOSE 8080
 ENTRYPOINT ["/server"]
 ```
 
-- 🧱 **Multi-stage builds**, small base images, **Docker Compose** for local dependencies (Postgres, Redis)
+- 🧱 **Image construction**
+  - Multi-stage builds, layer caching order (`go.mod` before source), `.dockerignore`
+  - Minimal/distroless base, non-root user, static binary (`CGO_ENABLED=0`)
+- 🧩 **Local environment**
+  - Docker Compose for Postgres/Redis, healthchecks, deterministic seed data
 
 ## 🧪 Practice — Project: Task API → Auth Service
 
@@ -456,8 +625,12 @@ service UserService {
 }
 ```
 
-⚠️ **Rules:** never reuse/rename field numbers, mark removed fields `reserved`,
-version your packages (`user.v1`), use **explicit request/response messages**.
+- 🔢 **Wire compatibility rules**
+  - Never reuse/rename field numbers; mark removed fields/numbers `reserved`
+  - Field presence, default values, why proto3 scalars aren't nullable (use wrappers/`optional`)
+- 🧬 **Schema design**
+  - Version packages (`user.v1`), explicit request/response messages, enums with a zero `UNSPECIFIED`
+  - Pagination/list conventions, well-known types (`Timestamp`, `FieldMask`)
 
 ### 🧰 Buf — manage protos (codegen, lint, breaking-change detection, CI)
 
@@ -473,6 +646,10 @@ breaking: { use: [FILE] }
 buf lint && buf breaking && buf generate   # 🧹 lint  🚨 breaking  ⚙️ codegen
 ```
 
+- 🧹 **Lint** — enforce naming/style standards across all protos
+- 🚨 **Breaking-change detection** — gate PRs in CI against the main branch
+- ⚙️ **Codegen** — `buf generate` with pinned plugin versions; the BSR for sharing modules
+
 ### 🌉 ConnectRPC — protobuf APIs over HTTP/1.1, HTTP/2, gRPC & gRPC-Web
 
 Browser-friendly, mounts directly on `net/http`/chi — no Envoy proxy needed:
@@ -484,10 +661,15 @@ mux.Handle(path, handler)
 http.ListenAndServe(":8080", mux)
 ```
 
+- 🌐 Speaks gRPC, gRPC-Web, and its own simple HTTP/JSON protocol
+- 🧩 Interceptors (the middleware equivalent), client + handler from the same schema
+- 🧪 Curl-able JSON for debugging without special tooling
+
 ### ⚡ gRPC — high-performance service-to-service RPC
 
-Learn: unary & streaming, deadlines, metadata, interceptors, status codes,
-TLS/mTLS, reflection, health checks.
+- 🔁 **RPC styles** — unary, server/client/bidi streaming and when each fits
+- ⏱️ **Call mechanics** — deadlines/cancellation, metadata, status codes
+- 🔗 **Cross-cutting** — interceptors, TLS/mTLS, reflection, health checks, keepalive
 
 ### 🤔 Choosing the right protocol
 
@@ -508,18 +690,32 @@ return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 
 ## ⚡ 4.2 Redis, Caching & Background Jobs
 
-- 🧰 Use cases: **cache**, rate limiting, sessions, **distributed locks**, queues, OTP, idempotency keys
-- ⏳ TTL, atomic ops, **Lua scripts**, cache invalidation, **stampede protection**
-- 🔁 **Cache-aside** pattern; background-job pattern (persist → enqueue → worker → update)
+- 🧰 **Use cases**
+  - Cache, rate limiting, sessions, distributed locks, queues, OTP store, idempotency keys
+  - Data structures: strings, hashes, sets, sorted sets, streams — pick the right one
+- ⏳ **Correctness primitives**
+  - TTL/expiry, atomic ops (`INCR`, `SETNX`), Lua scripts for multi-step atomicity
+  - Distributed locks done safely (token + expiry), the limits of single-node locks
+- 🔁 **Caching patterns**
+  - Cache-aside (lazy), write-through, invalidation strategy, negative caching
+  - **Stampede protection**: jittered TTLs, single-flight, request coalescing
+- 🧵 **Background jobs**
+  - Persist → enqueue → worker → update; visibility timeout; retry with backoff; idempotent handlers
 
 > ⚠️ The two hard problems: cache **invalidation** and stampedes. Design for
 > them up front, not after the incident. 🔥
 
 ## 📨 4.3 Messaging & Event-Driven Systems
 
-- 🚌 Redis Streams, NATS, RabbitMQ, Kafka, Google Pub/Sub
-- 🔁 **At-least-once delivery**, **idempotency**, retries, **DLQs**, ordering guarantees
-- 🧬 Event **versioning**, the **Outbox** pattern, the **Saga** pattern
+- 🚌 **Brokers & trade-offs**
+  - Redis Streams, NATS/JetStream, RabbitMQ, Kafka, Google Pub/Sub — throughput vs ordering vs retention
+- 🔁 **Delivery semantics**
+  - At-least-once vs at-most-once vs effectively-once; **consumer idempotency** is mandatory
+  - Retries, backoff, **dead-letter queues**, poison messages, partition/ordering keys
+- 🧬 **Event design**
+  - Event vs command, schema **versioning** & evolution, envelope metadata, contract ownership
+- 🧱 **Reliability patterns**
+  - **Outbox** (atomic DB write + publish), **Saga** (choreography vs orchestration), idempotency store
 
 ```json
 { "event_id": "evt_123", "event_type": "ORDER_CREATED",
@@ -541,19 +737,34 @@ Use when processes need **retries, timeouts, human approval, compensation**, or
 📏 Rule: Workflows orchestrate. Activities do work. Services own business logic.
 ```
 
+- 🧠 **Core model** — workflow vs activity, task queues, workers, event history & replay
+- 🧩 **Determinism** — why workflow code must be deterministic; what belongs in an activity
+- ⏲️ **Durability features** — timers, retry policies, signals/queries, child workflows, continue-as-new
+- 🧯 **Failure handling** — compensation/Saga, heartbeats for long activities, idempotent activities
+
 ## 🔧 4.5 Configuration & Secrets
 
-- ⚙️ Env vars, **typed config structs**, validation at startup, per-environment config
-- 🔐 Secrets in **Vault / cloud secret managers / K8s Secrets** — **never in Git** 🚫
+- ⚙️ **Configuration**
+  - Env vars → typed config struct, validation **at startup** (fail fast), per-environment overrides
+  - 12-factor config; no environment-specific code branches
+- 🔐 **Secrets**
+  - Vault / cloud secret managers / K8s Secrets; injection at runtime, not bake-time
+  - **Never in Git**; rotation strategy; least-privilege access to secrets
 
 > 🚨 A secret committed to Git is a leaked secret forever (even after `git rm`).
 > Rotate it, don't just delete it. 🔁
 
 ## 📊 4.6 Logging & Observability
 
-- 📝 **Structured logging** with `slog` (alternatives: `zap`, `zerolog`)
-- 📈 Metrics: **Prometheus** · 📊 Dashboards: **Grafana** · 🔍 Tracing: **OpenTelemetry**
-- 🧵 Request/correlation IDs, audit logs, `/healthz` & `/readyz` endpoints
+- 📝 **Structured logging**
+  - `slog` (alternatives: `zap`, `zerolog`), levels, key/value context, no PII
+  - One logger, propagated via context; sampling noisy logs
+- 📈 **Metrics**
+  - Prometheus: counters/gauges/histograms, RED method, cardinality discipline
+- 🔍 **Tracing**
+  - OpenTelemetry spans, context propagation across services, trace ↔ log correlation
+- 🧵 **Operational endpoints**
+  - Request/correlation IDs, audit logs, `/healthz` (liveness) vs `/readyz` (readiness)
 
 ```go
 slog.Info("user created", "user_id", user.ID, "tenant", tenantID) // 🔑 key/value, queryable
@@ -564,17 +775,24 @@ slog.Info("user created", "user_id", user.ID, "tenant", tenantID) // 🔑 key/va
 
 ## 🛡️ 4.7 Security
 
-- 🔒 HTTPS/TLS, **mTLS**, input validation, **parameterized SQL** (no string-built queries)
-- 🛡️ CORS/CSRF/XSS basics, secure headers, JWT security
-- 🔬 Dependency & supply-chain scanning (`govulncheck`), **least privilege**
-- 🔐 Encryption **at rest** and **in transit**
-- 🚫 **Never log** passwords, tokens, national IDs, or card numbers
+- 🔒 **Transport & input**
+  - HTTPS/TLS, mTLS for service-to-service, strict input validation
+  - **Parameterized SQL** only — never string-built queries
+- 🛡️ **Web vectors**
+  - CORS, CSRF, XSS, clickjacking; secure headers (HSTS, CSP); JWT alg/exp/aud validation
+- 🔬 **Supply chain**
+  - `govulncheck`, dependency pinning, minimal images, least privilege, SBOM awareness
+- 🔐 **Data protection**
+  - Encryption at rest and in transit; **never log** passwords, tokens, national IDs, card numbers
 
 ## 🚢 4.8 Deployment & CI/CD
 
-- 🪜 Start simple: **VPS + Docker Compose + Nginx + systemd**
-- ☁️ Then graduate to **Cloud Run / ECS / Kubernetes**
-- 🤖 GitHub Actions pipeline:
+- 🪜 **Progression**
+  - Start simple: VPS + Docker Compose + Nginx + systemd
+  - Graduate to Cloud Run / ECS / Kubernetes when it earns its complexity
+- 🤖 **Pipeline stages**
+  - fmt/vet → race tests → buf lint/breaking → build → push → migrate → deploy
+  - Build once, promote the same artifact across environments; automated rollback
 
 ```text
 push → 🎨 fmt/vet → 🧪 go test ./... -race → 📜 buf lint/breaking
@@ -607,24 +825,37 @@ push → 🎨 fmt/vet → 🧪 go test ./... -race → 📜 buf lint/breaking
 
 ## ⚙️ 5.1 Runtime & Memory Model
 
-- 🧠 The Go **memory model**: happens-before, what synchronization actually guarantees
-- 🧵 Goroutine **scheduler internals** (G/M/P, work-stealing, preemption)
-- 📈 **Stack growth**, **escape analysis**, heap vs stack allocation
+- 🧠 **The Go memory model**
+  - Happens-before, what channels/mutexes/atomics actually guarantee
+  - Why data races are undefined behavior, not "just a stale read"
+- 🧵 **Scheduler internals**
+  - G/M/P model, run queues, work-stealing, sysmon, preemption (loop & async)
+  - Blocking syscalls, network poller, `GOMAXPROCS` effects
+- 📈 **Allocation & escape analysis**
+  - Stack vs heap, what forces an escape, inlining's effect on escapes
+- 🗑️ **Garbage collector**
+  - Tri-color concurrent mark-sweep, write barriers, GC pacing
+  - Tuning `GOGC` and `GOMEMLIMIT` deliberately, soft-memory-limit behavior
+- 🔧 **Introspection**
+  - `runtime` package, `GODEBUG` (`gctrace=1`, `schedtrace`, `scheddetail`)
 
 ```bash
 go build -gcflags='-m' ./...   # 🔬 see escape-analysis decisions
 ```
 
-- 🗑️ Garbage collector: tri-color mark-sweep, write barriers, `GOGC`, `GOMEMLIMIT`
-- 🔧 `runtime` package, `GODEBUG` (e.g. `gctrace=1`, `schedtrace`)
-
 ## 🚀 5.2 Performance Engineering
 
-- 📏 Benchmarks: `testing.B`, `b.ReportAllocs()`, **`benchstat`** for statistical comparison
-- 🔥 Profiling: **`pprof`** (CPU, heap, goroutine, mutex, block)
-- 🕰️ Execution tracer: `go test -trace`, `go tool trace`
-- ♻️ Allocation reduction, `sync.Pool`, buffer reuse, avoiding interface boxing
-- 🎯 Optimize **only with profiles** — *never by guessing* (intuition about performance is usually wrong)
+- 📏 **Benchmarking**
+  - `testing.B`, `b.ReportAllocs()`, avoiding dead-code elimination, `benchstat` for significance
+- 🔥 **Profiling**
+  - `pprof`: CPU, heap, goroutine, mutex, block profiles; `net/http/pprof` in prod
+  - Reading flame graphs, top/list/peek, allocation vs in-use heap
+- 🕰️ **Execution tracing**
+  - `go test -trace`, `go tool trace`: scheduler latency, GC pauses, syscall blocking
+- ♻️ **Optimization techniques**
+  - Allocation reduction, `sync.Pool`, buffer reuse, avoiding interface boxing, preallocation
+- 🎯 **Discipline**
+  - Optimize **only with profiles**; measure → change one thing → measure again
 
 ```bash
 go test -bench=. -benchmem -cpuprofile=cpu.out
@@ -636,30 +867,46 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
 
 ## 🔀 5.3 Advanced Concurrency
 
-- 🔓 Lock-free patterns, `atomic.Pointer`, **memory ordering caveats**
-- 🧰 `errgroup`, `singleflight`, semaphores, rate limiters
-- 🕳️ Detecting and fixing **goroutine leaks**; deadlock analysis
-- 🧭 Designing cancellation that **actually propagates everywhere**
+- 🔓 **Lock-free & atomics**
+  - `atomic.Pointer`, CAS loops, memory-ordering caveats, when *not* to go lock-free
+- 🧰 **Coordination libraries**
+  - `errgroup` (bounded, cancel-on-error), `singleflight`, `golang.org/x/sync/semaphore`, rate limiters
+- 🕳️ **Leak & deadlock analysis**
+  - Detecting goroutine leaks (pprof goroutine profile), lock-ordering deadlocks
+- 🧭 **Cancellation design**
+  - Making cancellation propagate everywhere; context-aware blocking calls only
 
 ## 🔬 5.4 Deep Language & Toolchain
 
-- 🪞 `reflect` — when it's justified, and its real cost
-- ⚠️ `unsafe`, `//go:linkname`, alignment, the `unsafe.Pointer` rules
-- 🔗 `cgo` — costs, build implications, and when to **avoid** it
-- 🏗️ Build system: build tags, `//go:embed`, `//go:generate`, ldflags
-- 🧮 The compiler & linker pipeline at a high level; **inlining**; **PGO** (profile-guided optimization)
-- 🧹 `go vet`, `staticcheck`, `golangci-lint`, custom analyzers (`go/analysis`)
-- 🐝 **Fuzzing** (`go test -fuzz`) — let the machine find the inputs you didn't think of
+- 🪞 **`reflect`**
+  - When it's justified (serialization, DI), its cost, `reflect.Value`/`Type` model
+- ⚠️ **`unsafe` & low-level**
+  - `unsafe.Pointer` rules, alignment, `//go:linkname`, when this is acceptable
+- 🔗 **`cgo`**
+  - Call overhead, build/cross-compile implications, when to avoid entirely
+- 🏗️ **Build system**
+  - Build tags, `//go:embed`, `//go:generate`, `-ldflags` for version stamping
+- 🧮 **Compiler & PGO**
+  - Compile→SSA→link pipeline at a high level, inlining heuristics, profile-guided optimization
+- 🧹 **Static analysis**
+  - `go vet`, `staticcheck`, `golangci-lint`, writing custom analyzers with `go/analysis`
+- 🐝 **Fuzzing**
+  - `go test -fuzz`, seed corpus, finding inputs you didn't think of
 
 ## 🌐 5.5 Distributed Systems & Microservices
 
 🧱 **Master single-service skills first — *then* distribute.** Distribution multiplies failure modes.
 
-- 🚪 Service boundaries, API gateway, **service discovery**
-- 🔁 Distributed transactions, **Saga**, idempotency, retries with **jitter/backoff**
-- 🔌 Circuit breakers, bulkheads, timeouts, load balancing
-- 🗄️ Each service owns its database; communicate via **APIs/events, never shared tables**
-- ⏱️ Consistency models, clocks, **partial failure**, the *fallacies of distributed computing*
+- 🚪 **Topology**
+  - Service boundaries (DDD-ish), API gateway, service discovery, north-south vs east-west
+- 🔁 **Consistency & transactions**
+  - Saga, idempotency, retries with jitter/backoff, exactly-once illusion
+- 🔌 **Resilience patterns**
+  - Circuit breakers, bulkheads, timeouts everywhere, load balancing, backpressure
+- 🗄️ **Data ownership**
+  - Each service owns its DB; integrate via APIs/events, **never shared tables**
+- ⏱️ **Hard realities**
+  - Consistency models, clocks/ordering, partial failure, the fallacies of distributed computing
 
 ```text
 🚪 api-gateway · 🔐 auth · 👤 customer · 📦 order · 💳 payment · 🔔 notification · 🔄 workflow
@@ -668,17 +915,22 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
 
 ## 🚨 5.6 Production Operations / SRE
 
-- 🎯 **SLIs/SLOs/error budgets**, the RED & USE methods
-- 📦 Capacity planning, **load testing**, **chaos testing**
-- ☸️ Kubernetes in depth: probes, resource limits, HPA, rolling updates, Helm, network policies, cert-manager, service mesh (Istio/Linkerd)
-- 🧯 **Incident response**, blameless **postmortems**, on-call discipline
+- 🎯 **Reliability targets**
+  - SLIs/SLOs/error budgets, RED (rate/errors/duration) & USE (utilization/saturation/errors)
+- 📦 **Capacity & resilience testing**
+  - Load testing, soak tests, chaos testing, failure injection
+- ☸️ **Kubernetes in depth**
+  - Liveness/readiness/startup probes, requests/limits, HPA/VPA, rolling/blue-green/canary
+  - Helm, network policies, cert-manager, service mesh (Istio/Linkerd)
+- 🧯 **Incident discipline**
+  - On-call rotation, runbooks, blameless postmortems, error-budget-driven prioritization
 
 ## 🌟 5.7 Beyond the Code
 
-- 📖 Read Go source: `runtime`, `sync`, `net/http`, `context`
-- 📰 Follow Go release notes and proposals; understand the proposal process
-- 🤝 **Contribute to open source**; review others' Go
-- 🧑‍🏫 **Mentor**; write **design docs**; make and defend trade-offs in public
+- 📖 **Read Go source** — `runtime`, `sync`, `net/http`, `context`; understand the *why*
+- 📰 **Track the language** — release notes, the proposal process, accepted/rejected proposals
+- 🤝 **Contribute** — open source, code review, issue triage
+- 🧑‍🏫 **Multiply yourself** — mentor, write design docs, defend trade-offs in public
 
 ## 🧪 Practice — Capstone: Microservices Platform 🏗️
 
