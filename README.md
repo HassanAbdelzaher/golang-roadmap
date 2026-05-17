@@ -1,53 +1,87 @@
-# Backend Development Roadmap Using Golang
+# The Professional Go Roadmap — Beginner to Expert
 
-This roadmap is designed to help you become a **production-ready Go backend developer**, not only someone who knows Go syntax.
+A step-by-step path to becoming a **production-grade Go engineer**, not just someone who knows Go syntax.
 
-The roadmap focuses on:
-
-- Go backend development
-- REST APIs
-- PostgreSQL
-- Clean architecture
-- Authentication
-- Testing
-- Docker
-- Protocol Buffers
-- ConnectRPC
-- gRPC
-- Redis
-- Background jobs
-- Temporal
-- Microservices
-- Kubernetes
-- Observability
-- Security
+This roadmap is organized into **5 levels**. Each level has a clear goal, the
+topics to learn, practice projects, and a **mastery checklist** that gates
+progression. Do not skip levels — each one assumes the previous is solid.
 
 ---
 
-# 1. Go Language Foundations
+## How to Use This Roadmap
 
-Start with the Go language itself.
+- Work **top to bottom**. Levels build on each other.
+- For every level, build the project(s) before moving on.
+- Treat the **"You've mastered this level when…"** checklist as a gate, not a suggestion.
+- Read code, not just tutorials. Read the Go standard library.
+- Write Go every day. Reading about Go does not make you good at Go.
 
-## Topics to Learn
+### The 5 Levels at a Glance
 
-- Variables and constants
-- Functions
-- Structs
-- Interfaces
-- Pointers
-- Slices
-- Maps
-- Arrays
-- Packages
-- Go modules
-- Error handling
-- `defer`
-- `panic`
-- `recover`
-- `context.Context`
-- Formatting with `gofmt`
+| Level | Name | Focus | Typical Time* |
+|-------|------|-------|---------------|
+| 1 | Foundations | Syntax, types, tooling, first programs | 2–4 weeks |
+| 2 | Idiomatic Go | Interfaces, errors, generics, stdlib, testing | 4–6 weeks |
+| 3 | Concurrency & Services | Goroutines, HTTP, databases, architecture | 6–10 weeks |
+| 4 | Production Systems | RPC, messaging, observability, security, deployment | 8–12 weeks |
+| 5 | Mastery | Runtime, performance, internals, distributed systems | Ongoing |
 
-## Basic Example
+\* *Assumes consistent daily practice. Move on by competence, not by calendar.*
+
+### Target Stack (where this roadmap leads)
+
+```text
+Language:     Go
+HTTP Router:  net/http + chi
+Database:     PostgreSQL + pgx + sqlc
+Migrations:   goose or golang-migrate
+Cache/Queue:  Redis
+Messaging:    NATS / Kafka / Google Pub/Sub
+Workflows:    Temporal
+APIs:         REST + Protocol Buffers + Buf + ConnectRPC + gRPC
+Auth:         JWT + refresh-token rotation
+Logging:      slog
+Testing:      testing + testify + testcontainers-go
+Deployment:   Docker + Kubernetes / Cloud Run
+Observability: Prometheus + Grafana + OpenTelemetry
+```
+
+---
+
+# Level 1 — Foundations (Beginner)
+
+**Goal:** Write, build, and run correct Go programs. Be fluent with the toolchain.
+
+## 1.1 Setup & Tooling
+
+- Install Go (use the latest stable release)
+- `GOROOT`, `GOPATH`, the module cache
+- Editor setup (VS Code + `gopls`, or GoLand)
+- The `go` command:
+
+```bash
+go mod init example.com/myapp   # start a module
+go run .                        # run
+go build ./...                  # build everything
+go test ./...                   # test everything
+go fmt ./...                    # format (non-negotiable)
+go vet ./...                    # static checks
+go doc fmt.Println              # read docs from the terminal
+```
+
+## 1.2 Language Basics
+
+- Variables, constants, `iota`
+- Basic types, zero values, type conversions
+- Control flow: `if`, `for`, `switch`, labels
+- Functions, multiple return values, named returns, variadics
+- `defer` execution order
+- Arrays vs **slices** (length, capacity, `append`, slicing, aliasing)
+- **Maps** (zero value, comma-ok, deletion, iteration order)
+- Strings, runes, bytes, `[]byte` ↔ `string`
+- Structs, struct embedding, struct tags
+- Pointers (and why Go has no pointer arithmetic)
+- Packages, exported vs unexported, `go.mod` / `go.sum`
 
 ```go
 package main
@@ -55,2288 +89,590 @@ package main
 import "fmt"
 
 func main() {
-    fmt.Println("Hello Go")
+    fmt.Println("Hello, Go")
 }
 ```
 
-## Important Commands
+## 1.3 Errors From Day One
 
-```bash
-go mod init myapp
-go run main.go
-go build
-go test ./...
-go fmt ./...
-```
-
-## Error Handling
-
-Go backend code depends heavily on clean error handling.
+Go's error handling is explicit. Learn it correctly now — bad habits are hard to unlearn.
 
 ```go
-if err != nil {
-    return err
-}
-```
-
-Avoid ignoring errors.
-
-Bad:
-
-```go
+// Bad — silently swallows failures.
 result, _ := doSomething()
-```
 
-Good:
-
-```go
+// Good — handle or propagate.
 result, err := doSomething()
 if err != nil {
     return err
 }
 ```
 
+## Practice
+
+- A CLI that reverses a string and counts words.
+- A number-guessing game.
+- A program that reads a file and prints line counts.
+
+## ✅ Level 1 Mastery Checklist
+
+Move on when you can:
+
+- [ ] Explain the difference between a slice and an array, and predict aliasing bugs.
+- [ ] Build and run a multi-file module without help.
+- [ ] Explain why `result, _ :=` is dangerous.
+- [ ] Use `go doc` instead of reaching for a browser.
+- [ ] Write a 100-line program with zero `go vet` warnings.
+
 ---
 
-# 2. Go Concurrency
+# Level 2 — Idiomatic Go (Advanced Beginner)
 
-Go is strong for backend systems because of its concurrency model.
+**Goal:** Write Go that a senior Go engineer would approve in code review.
 
-## Topics to Learn
+## 2.1 Interfaces & Composition
 
-- Goroutines
-- Channels
-- Buffered channels
-- Unbuffered channels
-- `sync.WaitGroup`
-- `sync.Mutex`
-- `sync.RWMutex`
-- Worker pools
-- Context cancellation
-- Timeouts
-- Graceful shutdown
+- Implicit interface satisfaction ("accept interfaces, return structs")
+- Small interfaces (`io.Reader`, `io.Writer`, `error`, `fmt.Stringer`)
+- Interface values: `(type, value)`, the `nil`-interface pitfall
+- Type assertions and type switches
+- Composition over inheritance (struct & interface embedding)
 
-## Goroutine Example
+## 2.2 Errors, Properly
+
+- The `error` interface and sentinel errors (`errors.Is`)
+- Custom error types and `errors.As`
+- Wrapping with `fmt.Errorf("...: %w", err)`
+- `panic` / `recover` — and why you almost never use them for control flow
+- Designing error contracts for a package's callers
 
 ```go
-go func() {
-    fmt.Println("running in background")
-}()
-```
+var ErrNotFound = errors.New("not found")
 
-## Context Timeout Example
-
-```go
-ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-defer cancel()
-```
-
-## Why Context Matters
-
-`context.Context` is used in:
-
-- HTTP requests
-- Database queries
-- gRPC calls
-- ConnectRPC handlers
-- Background jobs
-- Temporal activities
-- External API calls
-
-You should understand it very well.
-
----
-
-# 3. HTTP Server Development
-
-Before using frameworks, learn the standard library.
-
-## Basic HTTP Server
-
-```go
-package main
-
-import (
-    "net/http"
-)
-
-func main() {
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("OK"))
-    })
-
-    http.ListenAndServe(":8080", nil)
-}
-```
-
-## Topics to Learn
-
-- `net/http`
-- Routing
-- Middleware
-- JSON request decoding
-- JSON response encoding
-- Request validation
-- Error responses
-- CORS
-- Graceful shutdown
-- Request IDs
-- Logging middleware
-- Authentication middleware
-
-## Recommended Router
-
-For production Go APIs:
-
-```text
-net/http + chi
-```
-
-Other options:
-
-```text
-Gin
-Echo
-Fiber
-```
-
-Recommended choice:
-
-```text
-chi
-```
-
-Because it is simple, idiomatic, and built on top of `net/http`.
-
----
-
-# 4. REST API Design
-
-REST is still very important for public APIs, admin APIs, integrations, and dashboards.
-
-## Common REST Pattern
-
-```http
-GET    /users
-GET    /users/{id}
-POST   /users
-PUT    /users/{id}
-PATCH  /users/{id}
-DELETE /users/{id}
-```
-
-## Topics to Learn
-
-- HTTP methods
-- Status codes
-- JSON APIs
-- Pagination
-- Filtering
-- Sorting
-- API versioning
-- Idempotency
-- Error response format
-- OpenAPI / Swagger
-- Request validation
-- Rate limiting
-
-## Example Error Response
-
-```json
-{
-  "code": "USER_NOT_FOUND",
-  "message": "User not found"
-}
-```
-
-## Recommended REST API Rules
-
-- Use nouns in URLs.
-- Use HTTP methods correctly.
-- Return consistent error responses.
-- Validate request body.
-- Do not expose internal errors.
-- Use pagination for list APIs.
-- Use request IDs for tracing.
-- Document APIs with OpenAPI.
-
----
-
-# 5. Protocol Buffers, ConnectRPC, and gRPC
-
-This section is very important for modern Go backend development, especially when building microservices, internal APIs, mobile APIs, and frontend-compatible RPC APIs.
-
-Recommended stack:
-
-```text
-Protocol Buffers + Buf + ConnectRPC + gRPC
-```
-
----
-
-## 5.1 Protocol Buffers
-
-Protocol Buffers, or protobuf, are used to define strongly typed API contracts.
-
-Instead of defining request and response models only in Go, you define them in `.proto` files.
-
-## Example Proto File
-
-```proto
-syntax = "proto3";
-
-package user.v1;
-
-option go_package = "github.com/your-org/your-project/gen/user/v1;userv1";
-
-message User {
-  string id = 1;
-  string name = 2;
-  string email = 3;
+func GetUser(id string) (*User, error) {
+    u, err := db.Find(id)
+    if err != nil {
+        return nil, fmt.Errorf("get user %s: %w", id, err)
+    }
+    return u, nil
 }
 
-message GetUserRequest {
-  string id = 1;
-}
-
-message GetUserResponse {
-  User user = 1;
-}
-
-service UserService {
-  rpc GetUser(GetUserRequest) returns (GetUserResponse);
-}
+// Caller:
+if errors.Is(err, ErrNotFound) { ... }
 ```
 
-## Learn Protobuf Concepts
-
-```text
-messages
-fields
-field numbers
-enums
-services
-repeated fields
-optional fields
-nested messages
-package naming
-go_package option
-imports
-well-known types
-```
-
-## Important Protobuf Rules
-
-```text
-Never reuse field numbers.
-Never rename fields carelessly.
-Reserve removed field numbers.
-Use clear package versioning like user.v1.
-Keep request and response messages explicit.
-```
-
-## Reserved Fields Example
-
-```proto
-message User {
-  reserved 4, 5;
-  reserved "old_status";
-
-  string id = 1;
-  string name = 2;
-  string email = 3;
-}
-```
-
-## Good API Design
-
-Good:
-
-```proto
-service CustomerService {
-  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
-  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
-  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
-}
-```
-
-Avoid:
-
-```proto
-service CustomerService {
-  rpc CreateCustomer(Customer) returns (Customer);
-}
-```
-
-Explicit request and response messages are better for future compatibility.
-
----
-
-## 5.2 Buf
-
-Buf is used to manage protobuf files.
-
-Buf helps with:
-
-```text
-code generation
-linting
-breaking-change checks
-module management
-standard proto structure
-CI validation
-```
-
-## Recommended Proto Structure
-
-```text
-proto/
-  user/v1/user.proto
-  auth/v1/auth.proto
-  customer/v1/customer.proto
-  common/v1/pagination.proto
-  common/v1/errors.proto
-```
-
-## Example `buf.yaml`
-
-```yaml
-version: v2
-
-modules:
-  - path: proto
-
-lint:
-  use:
-    - STANDARD
-
-breaking:
-  use:
-    - FILE
-```
-
-## Example `buf.gen.yaml`
-
-```yaml
-version: v2
-
-plugins:
-  - remote: buf.build/protocolbuffers/go
-    out: gen
-    opt:
-      - paths=source_relative
-
-  - remote: buf.build/connectrpc/go
-    out: gen
-    opt:
-      - paths=source_relative
-```
-
-## Generate Code
-
-```bash
-buf generate
-```
-
----
-
-## 5.3 ConnectRPC
-
-ConnectRPC gives you a clean way to build protobuf-based APIs in Go.
-
-It supports:
-
-```text
-Connect protocol
-gRPC
-gRPC-Web
-HTTP/1.1
-HTTP/2
-Browser clients
-Mobile clients
-Type-safe generated clients
-```
-
-ConnectRPC is very useful when you want:
-
-```text
-Go backend
-Next.js frontend
-React frontend
-Mobile clients
-Internal microservices
-gRPC-style contracts
-Web-compatible APIs without complex Envoy setup
-```
-
-## ConnectRPC Server Example
-
-```go
-package main
-
-import (
-    "net/http"
-
-    userv1connect "github.com/your-org/your-project/gen/user/v1/userv1connect"
-)
-
-type UserServer struct{}
-
-func main() {
-    mux := http.NewServeMux()
-
-    path, handler := userv1connect.NewUserServiceHandler(&UserServer{})
-    mux.Handle(path, handler)
-
-    http.ListenAndServe(":8080", mux)
-}
-```
-
-## ConnectRPC with Chi
-
-```go
-r := chi.NewRouter()
-
-path, handler := userv1connect.NewUserServiceHandler(&UserServer{})
-r.Mount(path, handler)
-
-http.ListenAndServe(":8080", r)
-```
-
-## ConnectRPC Advantages
-
-```text
-Works with browsers
-Works with HTTP/1.1 and HTTP/2
-Simpler than raw gRPC for web apps
-Uses protobuf contracts
-Supports generated clients
-Easy to use with Go net/http
-Good for internal and external APIs
-```
-
----
-
-## 5.4 gRPC
-
-gRPC is a high-performance RPC framework commonly used for service-to-service communication.
-
-## Learn gRPC Concepts
-
-```text
-Unary RPC
-Server streaming
-Client streaming
-Bidirectional streaming
-Deadlines
-Metadata
-Interceptors
-Status codes
-Error handling
-TLS
-mTLS
-Reflection
-Health checks
-Load balancing
-```
-
-## Example Service
-
-```proto
-service UserService {
-  rpc GetUser(GetUserRequest) returns (GetUserResponse);
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
-}
-```
-
-## Typical gRPC Flow
-
-```text
-.proto file
-↓
-Generate Go code
-↓
-Implement service interface
-↓
-Register service on gRPC server
-↓
-Run server on port 9090
-```
-
-## Example Go Implementation Shape
-
-```go
-type UserServer struct {
-    userv1.UnimplementedUserServiceServer
-}
-
-func (s *UserServer) GetUser(
-    ctx context.Context,
-    req *userv1.GetUserRequest,
-) (*userv1.GetUserResponse, error) {
-    return &userv1.GetUserResponse{
-        User: &userv1.User{
-            Id:    req.Id,
-            Name:  "Hassan",
-            Email: "user@example.com",
-        },
-    }, nil
-}
-```
-
----
-
-## 5.5 gRPC vs REST vs ConnectRPC
-
-Use this simple rule:
-
-```text
-REST:
-Best for public HTTP APIs, simple CRUD, third-party integrations.
-
-gRPC:
-Best for internal service-to-service communication.
-
-ConnectRPC:
-Best when you want protobuf/gRPC style with browser and HTTP compatibility.
-```
-
-## Practical Recommendation
-
-```text
-External public APIs:
-REST or ConnectRPC
-
-Internal microservices:
-gRPC or ConnectRPC
-
-Frontend web apps:
-ConnectRPC
-
-Mobile apps:
-ConnectRPC or gRPC
-
-Enterprise systems:
-Protobuf contracts + ConnectRPC + gRPC
-```
-
-For modern Go backend development:
-
-```text
-Start with REST
-Then learn protobuf
-Then ConnectRPC
-Then gRPC
-Then microservice communication
-```
-
----
-
-## 5.6 Error Handling in gRPC and ConnectRPC
-
-Use proper gRPC status codes.
-
-## Common Codes
-
-```text
-InvalidArgument
-Unauthenticated
-PermissionDenied
-NotFound
-AlreadyExists
-FailedPrecondition
-ResourceExhausted
-Internal
-Unavailable
-DeadlineExceeded
-```
-
-## gRPC Error Example
-
-```go
-return nil, status.Error(codes.NotFound, "user not found")
-```
-
-## ConnectRPC Error Example
-
-```go
-return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
-```
-
-## Business Error Codes
-
-Use business-level codes for your application.
-
-```text
-CUSTOMER_NOT_FOUND
-CUSTOMER_ALREADY_EXISTS
-INVALID_PHONE_NUMBER
-LIMIT_EXCEEDED
-KYC_REQUIRED
-PAYMENT_FAILED
-```
-
-Example:
-
-```proto
-message ErrorDetail {
-  string code = 1;
-  string message = 2;
-  map<string, string> metadata = 3;
-}
-```
-
----
-
-## 5.7 Authentication with gRPC and ConnectRPC
-
-For gRPC and ConnectRPC, tokens are usually sent in metadata or headers.
-
-Example:
-
-```text
-authorization: Bearer <access_token>
-```
-
-## Common Flow
-
-```text
-Client sends Authorization header
-↓
-Interceptor validates token
-↓
-User identity added to context
-↓
-Handler uses identity from context
-```
-
-## Learn
-
-```text
-Unary interceptors
-Stream interceptors
-Auth middleware
-Request ID middleware
-Logging middleware
-Rate limiting
-Tenant ID propagation
-Token validation
-Context values
-```
-
----
-
-## 5.8 Recommended Project Structure with Proto
-
-```text
-backend/
-  cmd/
-    api/
-      main.go
-
-  internal/
-    user/
-      handler.go
-      service.go
-      repository.go
-
-  proto/
-    user/v1/user.proto
-    auth/v1/auth.proto
-    common/v1/errors.proto
-
-  gen/
-    user/v1/user.pb.go
-    user/v1/user.connect.go
-    auth/v1/auth.pb.go
-    auth/v1/auth.connect.go
-
-  buf.yaml
-  buf.gen.yaml
-  go.mod
-```
-
-For large systems, use a separate proto repository:
-
-```text
-github.com/company/proto
-```
-
-Example:
-
-```text
-github.com/next-pay/proto
-```
-
----
-
-## 5.9 Learning Exercises
-
-## Exercise 1: UserService Proto
-
-Create:
-
-```text
-proto/user/v1/user.proto
-```
-
-Implement:
-
-```text
-CreateUser
-GetUser
-ListUsers
-UpdateUser
-DeleteUser
-```
-
-Generate Go code using Buf.
-
----
-
-## Exercise 2: ConnectRPC Server
-
-Build a Go server exposing:
-
-```text
-UserService
-AuthService
-HealthService
-```
-
-Use:
-
-```text
-connect-go
-chi
-slog
-PostgreSQL
-```
-
----
-
-## Exercise 3: Next.js Client
-
-Generate a TypeScript client and call your Go ConnectRPC backend from Next.js.
-
-Learn:
-
-```text
-Connect Web client
-CORS
-CSRF headers
-Authorization headers
-Server-side proxying
-```
-
----
-
-## Exercise 4: Microservices Communication
-
-Create two services:
-
-```text
-customer-service
-order-service
-```
-
-The `order-service` calls `customer-service` using gRPC or ConnectRPC.
-
-Learn:
-
-```text
-timeouts
-retries
-deadlines
-metadata
-request IDs
-error mapping
-```
-
----
-
-## 5.10 Production Checklist
-
-Before using protobuf, gRPC, or ConnectRPC in production, understand:
-
-```text
-Proto versioning
-Backward compatibility
-Buf linting
-Buf breaking checks
-Request validation
-Deadlines and timeouts
-Interceptors
-Authentication metadata
-TLS
-mTLS
-Health checks
-Reflection
-OpenTelemetry tracing
-Structured logging
-Error mapping
-Generated client packages
-CI pipeline for proto generation
-```
-
----
-
-# 6. Database Development
-
-Start with PostgreSQL.
-
-## SQL Topics to Learn
-
-- Tables
-- Columns
-- Data types
-- Primary keys
-- Foreign keys
-- Unique constraints
-- Check constraints
-- Indexes
-- Joins
-- Transactions
-- Isolation levels
-- Views
-- Stored procedures basics
-- Query optimization
-- Execution plans
-
-## Recommended Go Database Stack
-
-For serious backend development:
-
-```text
-PostgreSQL + pgx + sqlc
-```
-
-## Other Options
-
-```text
-GORM
-sqlx
-database/sql
-ent
-bun
-```
-
-## Recommendation
-
-Beginner-friendly:
-
-```text
-GORM
-```
-
-Production-friendly:
-
-```text
-pgx + sqlc
-```
-
-## SQLC Example
-
-SQL file:
-
-```sql
--- name: GetUser :one
-SELECT id, name, email
-FROM users
-WHERE id = $1;
-```
-
-Generated Go usage:
-
-```go
-user, err := queries.GetUser(ctx, userID)
-if err != nil {
-    return err
-}
-```
-
-## Learn Database Migrations
-
-Recommended tools:
-
-```text
-golang-migrate
-goose
-atlas
-```
-
-Example migration:
-
-```sql
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
----
-
-# 7. Authentication and Authorization
-
-Authentication is one of the most important backend skills.
-
-## Topics to Learn
-
-- Password hashing
-- bcrypt
-- argon2
-- JWT access tokens
-- Refresh tokens
-- Session management
-- Token rotation
-- Role-based access control
-- Permission-based access control
-- API keys
-- OAuth2 basics
-- Device/session revocation
-- Rate limiting
-- Account lockout
-
-## Basic Auth Flow
-
-```text
-User login
-↓
-Validate password
-↓
-Create access token
-↓
-Create refresh token
-↓
-Return tokens
-```
-
-## Production Auth Flow
-
-```text
-User login
-↓
-Validate credentials
-↓
-Create short-lived access token
-↓
-Create long-lived refresh token
-↓
-Store refresh token hash
-↓
-Return tokens
-↓
-Rotate refresh token on every refresh
-```
-
-## Security Rules
-
-```text
-Never store raw passwords.
-Never store raw refresh tokens.
-Never log tokens.
-Never log passwords.
-Never expose internal auth errors.
-```
-
-## Recommended Token Strategy
-
-```text
-Access token:
-Short-lived, for example 5 to 15 minutes.
-
-Refresh token:
-Longer-lived, stored as hash in database.
-
-Refresh rotation:
-Every refresh invalidates old refresh token and creates a new one.
-```
-
----
-
-# 8. Clean Architecture
-
-Clean architecture helps keep your backend maintainable.
-
-## Basic Layers
-
-```text
-Handler / Controller
-↓
-Service / Usecase
-↓
-Repository
-↓
-Database
-```
-
-## Example Structure
-
-```text
-myapp/
-  cmd/
-    api/
-      main.go
-
-  internal/
-    config/
-    http/
-    middleware/
-    user/
-      handler.go
-      service.go
-      repository.go
-      model.go
-
-  migrations/
-  sql/
-  go.mod
-```
-
-## Rules
-
-- Do not put business logic in HTTP handlers.
-- Keep handlers focused on request and response.
-- Put business rules in services.
-- Put database logic in repositories.
-- Use interfaces when they help testing or decoupling.
-- Avoid over-engineering early.
-
-## Example Flow
-
-```text
-HTTP request
-↓
-UserHandler
-↓
-UserService
-↓
-UserRepository
-↓
-PostgreSQL
-```
-
----
-
-# 9. Configuration and Environment
-
-Backend systems need clean configuration.
-
-## Learn
-
-- Environment variables
-- `.env` files
-- Config structs
-- Validation
-- Secret management
-- Dev/staging/prod environments
-
-## Example `.env`
-
-```bash
-APP_PORT=8080
-DATABASE_URL=postgres://user:pass@localhost:5432/app
-JWT_SECRET=secret
-REDIS_URL=redis://localhost:6379
-```
-
-## Production Secrets
-
-Use:
-
-```text
-Vault
-GCP Secret Manager
-AWS Secrets Manager
-Azure Key Vault
-Kubernetes Secrets
-```
-
-Do not commit secrets to Git.
-
----
-
-# 10. Logging and Observability
-
-Production backend systems need observability from day one.
-
-## Learn
-
-- Structured logging
-- Metrics
-- Tracing
-- Request IDs
-- Correlation IDs
-- Audit logs
-- Health checks
-- Readiness checks
-- Prometheus
-- Grafana
-- OpenTelemetry
-
-## Recommended Logging Libraries
-
-```text
-slog
-zap
-zerolog
-```
-
-## Example Structured Log
-
-```go
-logger.Info("user created", "user_id", user.ID)
-```
-
-## Observability Stack
-
-```text
-Logs:
-slog / zap / zerolog
-
-Metrics:
-Prometheus
-
-Dashboards:
-Grafana
-
-Tracing:
-OpenTelemetry
-
-Health checks:
-HTTP /healthz and /readyz
-```
-
----
-
-# 11. Testing
-
-Testing is essential for professional backend development.
-
-## Learn
-
-- Unit tests
-- Integration tests
-- Repository tests
-- API tests
-- Table-driven tests
-- Mocking
-- Test containers
-- HTTP testing
-- gRPC testing
-
-## Run Tests
-
-```bash
-go test ./...
-```
-
-## Basic Test Example
+## 2.3 Generics
+
+- Type parameters, constraints, the `constraints` package
+- When generics help (containers, algorithms) and when they hurt (over-abstraction)
+- Generic functions vs generic types
+- Inference and its limits
+
+## 2.4 Standard Library Fluency
+
+- `fmt`, `strings`, `strconv`, `bytes`, `bufio`
+- `encoding/json` (marshal/unmarshal, tags, `omitempty`, custom marshalers)
+- `time` (durations, monotonic clock, formatting, time zones)
+- `io` / `os` (readers, writers, files, `io.Copy`)
+- `sort`, `slices`, `maps` (modern generic helpers)
+
+## 2.5 Testing & Project Layout
+
+- `testing` package, table-driven tests, subtests (`t.Run`)
+- Test helpers, golden files, `testdata/`
+- `go test -run`, `-v`, `-cover`, `-count=1`
+- Benchmarks (`testing.B`) and `go test -bench`
+- Standard project layout (`cmd/`, `internal/`, `pkg/`)
+- The Go Proverbs and *Effective Go*
 
 ```go
 func TestAdd(t *testing.T) {
-    got := Add(2, 3)
-    want := 5
-
-    if got != want {
-        t.Fatalf("got %d, want %d", got, want)
+    cases := []struct {
+        name     string
+        a, b, want int
+    }{
+        {"positive", 2, 3, 5},
+        {"zero", 0, 0, 0},
+        {"negative", -1, -1, -2},
+    }
+    for _, tc := range cases {
+        t.Run(tc.name, func(t *testing.T) {
+            if got := Add(tc.a, tc.b); got != tc.want {
+                t.Fatalf("Add(%d,%d) = %d, want %d", tc.a, tc.b, got, tc.want)
+            }
+        })
     }
 }
 ```
 
-## Useful Tools
+## Practice
 
-```text
-testing
-testify
-gomock
-mockery
-httptest
-testcontainers-go
-```
+- A JSON-driven CLI (parse config, validate, pretty-print).
+- A generic, well-tested `Set[T]` and `Stack[T]`.
+- A small library with a clean public API, godoc comments, and ≥80% coverage.
 
-## Testing Priorities
+## ✅ Level 2 Mastery Checklist
 
-Start with:
+Move on when you can:
 
-```text
-Service tests
-Repository tests
-Handler tests
-Authentication tests
-Integration tests
-```
+- [ ] Explain the `nil`-interface gotcha and produce it on demand.
+- [ ] Choose between sentinel errors, error types, and wrapping — and justify it.
+- [ ] Write table-driven tests with subtests by reflex.
+- [ ] Read and explain a non-trivial file from the Go standard library.
+- [ ] Decide *not* to use generics when they add no value.
 
 ---
 
-# 12. Docker
+# Level 3 — Concurrency & Services (Intermediate)
 
-Docker is required for modern backend development.
+**Goal:** Build correct concurrent programs and ship a real HTTP service backed by a database.
 
-## Learn
+## 3.1 Concurrency
 
-- Dockerfile
-- Docker Compose
-- Multi-stage builds
-- Container networking
-- Volumes
-- Health checks
-- Environment variables
-- Image tags
-- Registry push/pull
+- Goroutines and the scheduler model (GOMAXPROCS, M:N)
+- Channels: unbuffered vs buffered, directionality, closing, `range`
+- `select`, timeouts, `default`
+- `sync`: `WaitGroup`, `Mutex`, `RWMutex`, `Once`, `Pool`
+- `sync/atomic` and when a mutex is clearer
+- `context.Context`: cancellation, deadlines, values, propagation
+- Patterns: worker pool, fan-in/fan-out, pipeline, bounded concurrency
+- Graceful shutdown
+- The race detector: `go test -race`, `go run -race`
 
-## Example Dockerfile
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+defer cancel()
 
-```dockerfile
-FROM golang:1.24-alpine AS builder
-
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-RUN go build -o server ./cmd/api
-
-FROM alpine:latest
-
-WORKDIR /app
-COPY --from=builder /app/server .
-
-EXPOSE 8080
-
-CMD ["./server"]
+results := make(chan int)
+var wg sync.WaitGroup
+for _, job := range jobs {
+    wg.Add(1)
+    go func(j Job) {
+        defer wg.Done()
+        select {
+        case results <- process(j):
+        case <-ctx.Done():
+        }
+    }(job)
+}
+go func() { wg.Wait(); close(results) }()
 ```
 
-## Example Docker Compose
+**`context.Context` shows up everywhere** — HTTP handlers, DB queries, gRPC/ConnectRPC,
+background jobs, Temporal activities, external calls. Understand it deeply.
 
-```yaml
-services:
-  api:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      DATABASE_URL: postgres://app:app@postgres:5432/app?sslmode=disable
-    depends_on:
-      - postgres
+## 3.2 HTTP Servers
 
-  postgres:
-    image: postgres:17
-    environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
-    ports:
-      - "5432:5432"
-```
+Learn the standard library *before* a framework.
 
----
+```go
+func main() {
+    mux := http.NewServeMux()
+    mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("ok"))
+    })
 
-# 13. Redis, Caching, and Background Jobs
-
-Redis is commonly used in backend systems.
-
-## Use Cases
-
-```text
-Caching
-Rate limiting
-Session storage
-Distributed locks
-Queues
-Temporary tokens
-OTP storage
-Idempotency keys
-```
-
-## Learn
-
-- Redis strings
-- Redis hashes
-- Expiration
-- TTL
-- Atomic operations
-- Lua scripts basics
-- Rate limiting
-- Distributed locks
-- Cache invalidation
-
-## Cache Pattern
-
-```text
-Request data
-↓
-Check Redis cache
-↓
-If found, return cached data
-↓
-If not found, query database
-↓
-Store result in Redis
-↓
-Return data
-```
-
-## Background Job Pattern
-
-```text
-API receives request
-↓
-Store request in database
-↓
-Publish job/event
-↓
-Worker processes job
-↓
-Update database
-```
-
----
-
-# 14. Messaging and Event-Driven Systems
-
-Learn async communication after you understand APIs and databases.
-
-## Tools
-
-```text
-Redis Queue
-NATS
-RabbitMQ
-Kafka
-Google Pub/Sub
-Temporal
-```
-
-## When to Use What
-
-```text
-Redis:
-Simple queues, cache, rate limits.
-
-RabbitMQ:
-Traditional message queue.
-
-NATS:
-Lightweight messaging.
-
-Kafka:
-High-volume event streaming.
-
-Google Pub/Sub:
-Managed cloud messaging.
-
-Temporal:
-Durable workflow orchestration.
-```
-
-## Event Example
-
-```json
-{
-  "event_id": "evt_123",
-  "event_type": "ORDER_CREATED",
-  "occurred_at": "2026-01-01T10:00:00Z",
-  "data": {
-    "order_id": "ord_123"
-  }
+    srv := &http.Server{Addr: ":8080", Handler: mux}
+    log.Fatal(srv.ListenAndServe())
 }
 ```
 
-## Important Concepts
+- Routing, middleware chains, request context
+- JSON decode/encode, request validation, consistent error responses
+- CORS, request IDs, logging & auth middleware
+- Graceful shutdown (`http.Server.Shutdown`)
+- Router choice: **`net/http` + `chi`** (idiomatic, stdlib-compatible).
+  Alternatives: Gin, Echo, Fiber.
+
+## 3.3 REST API Design
+
+```http
+GET    /users        GET    /users/{id}
+POST   /users         PATCH  /users/{id}
+PUT    /users/{id}    DELETE /users/{id}
+```
+
+- Correct HTTP methods & status codes
+- Pagination, filtering, sorting, API versioning
+- Idempotency, rate limiting
+- Consistent error envelope; never leak internal errors
+- Document with OpenAPI / Swagger
+
+```json
+{ "code": "USER_NOT_FOUND", "message": "User not found" }
+```
+
+## 3.4 Databases (PostgreSQL)
+
+- SQL: keys, constraints, indexes, joins, transactions, isolation levels
+- Query plans (`EXPLAIN ANALYZE`) and basic optimization
+- **Production stack: PostgreSQL + `pgx` + `sqlc`** (beginner-friendly: GORM)
+- Migrations: `goose`, `golang-migrate`, or `atlas`
+
+```sql
+-- name: GetUser :one
+SELECT id, name, email FROM users WHERE id = $1;
+```
+
+```go
+user, err := queries.GetUser(ctx, userID)
+if err != nil {
+    return fmt.Errorf("get user: %w", err)
+}
+```
+
+## 3.5 Clean Architecture
 
 ```text
-At-least-once delivery
-Idempotency
-Retries
-Dead-letter queues
-Ordering
-Event versioning
-Outbox pattern
-Saga pattern
+Handler / Controller  →  Service / Usecase  →  Repository  →  Database
 ```
+
+- Keep business logic out of HTTP handlers
+- Repositories own data access; services own rules
+- Use interfaces where they aid testing or decoupling — not everywhere
+- Avoid premature abstraction
+
+## 3.6 Authentication & Authorization
+
+- Password hashing (`bcrypt`, `argon2`) — never store raw passwords
+- JWT access tokens + refresh tokens, **refresh-token rotation**
+- Store only token *hashes*; never log tokens or passwords
+- RBAC / permission-based access, API keys, OAuth2 basics
+- Rate-limit login & OTP endpoints; account lockout
+
+## 3.7 Testing Strategy
+
+- Unit (services), integration (repositories with `testcontainers-go`), API (`httptest`)
+- Mocking with `gomock` / `mockery`
+- Test the layers that hold business value first
+
+## 3.8 Docker
+
+```dockerfile
+FROM golang:1-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /bin/server ./cmd/api
+
+FROM gcr.io/distroless/static
+COPY --from=build /bin/server /server
+EXPOSE 8080
+ENTRYPOINT ["/server"]
+```
+
+- Multi-stage builds, small base images, Docker Compose for local deps
+
+## Practice — Project: Task API → Auth Service
+
+1. **Task API:** chi + PostgreSQL + Docker. CRUD, pagination, graceful shutdown.
+2. **Auth Service:** register/login/refresh/logout, RBAC, token rotation, Redis, integration tests.
+
+## ✅ Level 3 Mastery Checklist
+
+Move on when you can:
+
+- [ ] Build a concurrent program that passes `-race` and shuts down cleanly.
+- [ ] Explain when to use a channel vs a mutex vs an atomic.
+- [ ] Ship a chi + PostgreSQL service with migrations and integration tests.
+- [ ] Implement refresh-token rotation correctly.
+- [ ] Justify your architecture layering in a code review.
 
 ---
 
-# 15. Temporal Workflow Orchestration
+# Level 4 — Production Systems (Advanced)
 
-Temporal is powerful for long-running workflows.
+**Goal:** Build, secure, observe, and deploy systems that survive real traffic.
 
-Use Temporal when business processes need:
+## 4.1 Protocol Buffers, Buf, ConnectRPC & gRPC
 
-```text
-Retries
-Timeouts
-Human approval
-Long-running flows
-Compensation
-Saga pattern
-Durable execution
-Failure recovery
+Recommended stack: **Protocol Buffers + Buf + ConnectRPC + gRPC**.
+
+**Protobuf** — strongly-typed API contracts:
+
+```proto
+syntax = "proto3";
+package user.v1;
+option go_package = "example.com/gen/user/v1;userv1";
+
+message User { string id = 1; string name = 2; string email = 3; }
+message GetUserRequest { string id = 1; }
+message GetUserResponse { User user = 1; }
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
 ```
 
-## Example Use Cases
+Rules: never reuse/rename field numbers, `reserved` removed fields, version
+packages (`user.v1`), explicit request/response messages.
 
-```text
-Order processing
-Payment workflow
-KYC workflow
-Customer onboarding
-Notification workflow
-BNPL approval flow
-Document processing pipeline
+**Buf** — manage protos (codegen, lint, breaking-change detection, CI):
+
+```yaml
+# buf.yaml
+version: v2
+modules: [{ path: proto }]
+lint: { use: [STANDARD] }
+breaking: { use: [FILE] }
 ```
 
-## Temporal Concepts
-
-```text
-Workflow
-Activity
-Worker
-Task Queue
-Signal
-Query
-Timer
-Retry Policy
-Child Workflow
-Continue-As-New
+```bash
+buf lint && buf breaking && buf generate
 ```
 
-## Recommended Rule
+**ConnectRPC** — protobuf APIs that work over HTTP/1.1, HTTP/2, gRPC, and
+gRPC-Web (browser-friendly, mounts on `net/http`/chi):
 
-```text
-Workflows orchestrate.
-Activities do real work.
-Services own business logic.
+```go
+mux := http.NewServeMux()
+path, handler := userv1connect.NewUserServiceHandler(&UserServer{})
+mux.Handle(path, handler)
+http.ListenAndServe(":8080", mux)
 ```
 
-## Example Flow
+**gRPC** — high-performance service-to-service RPC. Learn: unary & streaming,
+deadlines, metadata, interceptors, status codes, TLS/mTLS, reflection, health checks.
+
+**Choosing:**
 
 ```text
-Start onboarding workflow
-↓
-Verify phone OTP
-↓
-Run KYC check
-↓
-Evaluate risk
-↓
-Create customer
-↓
-Create wallet/account
-↓
-Send notification
+REST        → public HTTP APIs, simple CRUD, third-party integrations
+gRPC        → internal service-to-service
+ConnectRPC  → browser/mobile + protobuf contracts without an Envoy proxy
 ```
+
+Map errors to proper codes:
+
+```go
+// gRPC
+return nil, status.Error(codes.NotFound, "user not found")
+// Connect
+return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
+```
+
+## 4.2 Redis, Caching & Background Jobs
+
+- Use cases: cache, rate limiting, sessions, distributed locks, queues, OTP, idempotency keys
+- TTL, atomic ops, Lua scripts, cache invalidation, stampede protection
+- Cache-aside pattern; background-job pattern (persist → enqueue → worker → update)
+
+## 4.3 Messaging & Event-Driven Systems
+
+- Redis Streams, NATS, RabbitMQ, Kafka, Google Pub/Sub
+- At-least-once delivery, **idempotency**, retries, DLQs, ordering
+- Event versioning, **Outbox** pattern, **Saga** pattern
+
+```json
+{ "event_id": "evt_123", "event_type": "ORDER_CREATED",
+  "occurred_at": "2026-01-01T10:00:00Z", "data": { "order_id": "ord_123" } }
+```
+
+## 4.4 Temporal — Durable Workflows
+
+Use when processes need retries, timeouts, human approval, compensation, or
+long-running durable execution.
+
+```text
+Workflow · Activity · Worker · Task Queue · Signal · Query
+Timer · Retry Policy · Child Workflow · Continue-As-New
+
+Rule: Workflows orchestrate. Activities do work. Services own business logic.
+```
+
+## 4.5 Configuration & Secrets
+
+- Env vars, typed config structs, validation, per-environment config
+- Secrets in Vault / cloud secret managers / K8s Secrets — **never in Git**
+
+## 4.6 Logging & Observability
+
+- Structured logging with `slog` (alternatives: `zap`, `zerolog`)
+- Metrics: Prometheus · Dashboards: Grafana · Tracing: OpenTelemetry
+- Request/correlation IDs, audit logs, `/healthz` & `/readyz`
+
+```go
+slog.Info("user created", "user_id", user.ID, "tenant", tenantID)
+```
+
+## 4.7 Security
+
+- HTTPS/TLS, mTLS, input validation, parameterized SQL
+- CORS/CSRF/XSS basics, secure headers, JWT security
+- Dependency & supply-chain scanning (`govulncheck`), least privilege
+- Encryption at rest and in transit
+- **Never log** passwords, tokens, national IDs, or card numbers
+
+## 4.8 Deployment & CI/CD
+
+- Start simple (VPS + Docker Compose + Nginx + systemd)
+- Then Cloud Run / ECS / Kubernetes
+- GitHub Actions pipeline:
+
+```text
+push → fmt/vet → go test ./... -race → buf lint/breaking
+     → docker build → push → migrate → deploy
+```
+
+## Practice — Projects
+
+- **E-commerce backend:** products, orders, payments, webhooks, background workers, OpenAPI.
+- **ConnectRPC backend:** User/Auth/Product/Order services, Buf, sqlc, chi.
+- **gRPC microservices:** customer/order/notification with deadlines, interceptors, retries.
+
+## ✅ Level 4 Mastery Checklist
+
+Move on when you can:
+
+- [ ] Design versioned protobuf APIs and enforce them with Buf in CI.
+- [ ] Pick REST vs gRPC vs ConnectRPC and defend the choice.
+- [ ] Make a consumer idempotent and explain at-least-once delivery.
+- [ ] Add tracing/metrics/structured logs to a service and read them in Grafana.
+- [ ] Pass a basic security review of your own service.
 
 ---
 
-# 16. Microservices
+# Level 5 — Mastery (Expert)
 
-Do not start with microservices too early.
+**Goal:** Understand *why* Go behaves as it does, optimize with evidence, and
+operate distributed systems. This level never really ends.
 
-First master:
+## 5.1 Runtime & Memory Model
 
-```text
-Go
-REST
-PostgreSQL
-Clean architecture
-Testing
-Docker
+- The Go memory model: happens-before, what synchronization actually guarantees
+- Goroutine scheduler internals (G/M/P, work-stealing, preemption)
+- Stack growth, escape analysis, heap vs stack allocation
+
+```bash
+go build -gcflags='-m' ./...   # see escape-analysis decisions
 ```
 
-Then move to microservices.
+- Garbage collector: tri-color mark-sweep, write barriers, `GOGC`, `GOMEMLIMIT`
+- `runtime` package, `GODEBUG` (e.g. `gctrace=1`, `schedtrace`)
 
-## Learn
+## 5.2 Performance Engineering
 
-- Service boundaries
-- API gateway
-- gRPC communication
-- ConnectRPC communication
-- Event-driven communication
-- Distributed transactions
-- Saga pattern
-- Idempotency
-- Retry policy
-- Circuit breaker
-- Rate limiting
-- Service discovery
-- Observability
-- Centralized logging
+- Benchmarks: `testing.B`, `b.ReportAllocs()`, `benchstat`
+- Profiling: `pprof` (CPU, heap, goroutine, mutex, block)
+- Execution tracer: `go test -trace`, `go tool trace`
+- Allocation reduction, `sync.Pool`, buffer reuse, avoiding interface boxing
+- Optimize **only** with profiles — never by guessing
 
-## Example Services
-
-```text
-auth-service
-customer-service
-order-service
-payment-service
-notification-service
-workflow-service
+```bash
+go test -bench=. -benchmem -cpuprofile=cpu.out
+go tool pprof -http=:0 cpu.out
 ```
 
-## Communication Types
+## 5.3 Advanced Concurrency
+
+- Lock-free patterns, `atomic.Pointer`, memory ordering caveats
+- `errgroup`, `singleflight`, semaphores, rate limiters
+- Detecting and fixing goroutine leaks; deadlock analysis
+- Designing cancellation that actually propagates everywhere
+
+## 5.4 Deep Language & Toolchain
+
+- `reflect`: when it's justified, and its cost
+- `unsafe`, `//go:linkname`, alignment, `unsafe.Pointer` rules
+- `cgo`: costs, build implications, when to avoid it
+- Build system: build tags, `//go:embed`, `//go:generate`, linkname, ldflags
+- The compiler & linker pipeline at a high level; inlining; PGO (profile-guided optimization)
+- `go vet`, `staticcheck`, `golangci-lint`, custom analyzers (`go/analysis`)
+- Fuzzing (`go test -fuzz`)
+
+## 5.5 Distributed Systems & Microservices
+
+Master single-service skills first — *then* distribute.
+
+- Service boundaries, API gateway, service discovery
+- Distributed transactions, Saga, idempotency, retries with jitter/backoff
+- Circuit breakers, bulkheads, timeouts, load balancing
+- Each service owns its database; communicate via APIs/events, never shared tables
+- Consistency models, clocks, partial failure, the fallacies of distributed computing
 
 ```text
-Synchronous:
-REST, gRPC, ConnectRPC
-
-Asynchronous:
-Kafka, Pub/Sub, NATS, RabbitMQ
-
-Durable workflows:
-Temporal
+api-gateway · auth · customer · order · payment · notification · workflow
+sync: REST/gRPC/ConnectRPC   async: Kafka/NATS/PubSub   durable: Temporal
 ```
 
-## Microservice Rule
+## 5.6 Production Operations / SRE
 
-```text
-Each service should own its database.
-Services should communicate through APIs or events.
-Avoid sharing database tables between services.
-```
+- SLIs/SLOs/error budgets, RED & USE methods
+- Capacity planning, load testing, chaos testing
+- Kubernetes in depth: probes, resource limits, HPA, rolling updates, Helm,
+  network policies, cert-manager, service mesh (Istio/Linkerd)
+- Incident response, postmortems, on-call discipline
+
+## 5.7 Beyond the Code
+
+- Read Go source: `runtime`, `sync`, `net/http`, `context`
+- Follow Go release notes and proposals; understand the proposal process
+- Contribute to open source; review others' Go
+- Mentor; write design docs; make and defend trade-offs in public
+
+## Practice — Capstone: Microservices Platform
+
+Build and operate a full platform: api-gateway, auth, customer, order, payment,
+notification, and workflow services using Go, Protobuf/Buf, ConnectRPC/gRPC,
+Temporal, PostgreSQL, Redis, Kafka, Kubernetes, Prometheus, Grafana, and
+OpenTelemetry — with CI/CD, load tests, dashboards, and a written runbook.
+
+## ✅ Expert Mastery Checklist
+
+You've reached Expert when you can:
+
+- [ ] Explain a latency regression from a `pprof`/trace profile, then fix it.
+- [ ] Reason about the Go memory model to prove a concurrent algorithm correct.
+- [ ] Predict escape-analysis and GC behavior, and tune `GOGC`/`GOMEMLIMIT` deliberately.
+- [ ] Design a distributed system that degrades gracefully under partial failure.
+- [ ] Operate that system in production with SLOs and own an incident end-to-end.
+- [ ] Read unfamiliar standard-library code and explain its design choices.
 
 ---
 
-# 17. Security
-
-Security is mandatory for backend development.
-
-## Topics to Learn
-
-- HTTPS / TLS
-- mTLS
-- Input validation
-- SQL injection prevention
-- XSS basics
-- CSRF basics
-- CORS
-- JWT security
-- Password hashing
-- Rate limiting
-- Secrets management
-- Audit logs
-- Secure headers
-- Dependency scanning
-- Supply-chain security
-- Least privilege
-- Encryption at rest
-- Encryption in transit
-
-## Important Rule
+# Recommended Resources
 
 ```text
-Never log passwords, tokens, national IDs, credit card numbers, or sensitive customer data.
+Tour of Go              — first hours
+Effective Go            — idioms (read at Level 2)
+Go Proverbs             — philosophy
+The Go Programming Lang. — the book (Donovan & Kernighan)
+Go by Example           — quick reference
+Go Blog                 — release notes, deep dives
+Go memory model spec    — required for Level 5
+Standard library source — your best teacher
 ```
 
-## API Security Checklist
+# Tooling Reference
+
+```bash
+go run / build / test / fmt / vet / doc / mod
+go test ./... -race -cover
+go test -bench=. -benchmem
+go build -gcflags='-m'        # escape analysis
+go tool pprof / trace          # profiling
+govulncheck ./...              # vulnerability scan
+golangci-lint run              # aggregate linters
+buf lint / breaking / generate # protobuf
+```
+
+# Recommended Study Plan (6 Months, then ongoing)
 
 ```text
-Use HTTPS.
-Validate all input.
-Use prepared SQL queries.
-Hash passwords.
-Rotate refresh tokens.
-Rate limit login and OTP endpoints.
-Use short-lived access tokens.
-Store secrets outside code.
-Use audit logs.
-Return safe error messages.
+Month 1   Level 1 + start Level 2     → CLI tools, first library
+Month 2   Finish Level 2 + Level 3.1  → concurrency, tested library
+Month 3   Level 3 (HTTP, DB, auth)    → Task API + Auth Service
+Month 4   Level 4 (Proto/RPC, Redis)  → ConnectRPC backend
+Month 5   Level 4 (messaging/Temporal)→ workflow-based backend
+Month 6   Level 5 (perf, deploy, k8s) → microservices platform
+Ongoing   Level 5 mastery             → profiling, internals, OSS
 ```
 
----
-
-# 18. Deployment
-
-Learn deployment gradually.
-
-## Start Simple
-
-```text
-Linux VPS
-Docker Compose
-Nginx
-PostgreSQL
-Systemd
-```
-
-## Then Learn Cloud
-
-```text
-Cloud Run
-GKE
-AWS ECS
-AWS EKS
-Azure Container Apps
-Kubernetes
-```
-
-## Then Learn Kubernetes
-
-```text
-Pods
-Deployments
-Services
-Ingress
-ConfigMaps
-Secrets
-Horizontal Pod Autoscaler
-Helm
-Namespaces
-Persistent Volumes
-```
-
-## Go Deployment Options
-
-```text
-Small project:
-Docker Compose on VPS
-
-Scalable API:
-Cloud Run
-
-Enterprise platform:
-Kubernetes / GKE
-
-Internal tool:
-Linux service with systemd
-```
-
----
-
-# 19. CI/CD
-
-CI/CD automates testing and deployment.
-
-## Learn
-
-- GitHub Actions
-- Build pipeline
-- Test pipeline
-- Docker image build
-- Push image to registry
-- Deploy to server/cloud
-- Database migration step
-- Environment-specific configuration
-
-## Simple Pipeline
-
-```text
-Push code
-↓
-Run tests
-↓
-Build Docker image
-↓
-Push image
-↓
-Run migrations
-↓
-Deploy
-```
-
-## Example Pipeline Tasks
-
-```text
-go fmt check
-go vet
-go test ./...
-buf lint
-buf breaking
-docker build
-docker push
-deploy
-```
-
----
-
-# 20. Kubernetes and Cloud Native Backend
-
-After Docker and deployment basics, learn Kubernetes.
-
-## Learn
-
-- Kubernetes architecture
-- Pods
-- Deployments
-- Services
-- Ingress
-- ConfigMaps
-- Secrets
-- Jobs
-- CronJobs
-- Volumes
-- Helm
-- Autoscaling
-- Rolling updates
-- Health probes
-- Resource limits
-- Namespaces
-
-## Advanced Topics
-
-```text
-Istio
-Kong Gateway
-NGINX Ingress
-cert-manager
-mTLS
-Service mesh
-Network policies
-Prometheus Operator
-Grafana dashboards
-OpenTelemetry collector
-```
-
-## Production Kubernetes Skills
-
-```text
-Use readiness and liveness probes.
-Set CPU and memory limits.
-Use horizontal autoscaling.
-Use rolling deployments.
-Use secrets safely.
-Monitor services.
-Centralize logs.
-Secure ingress.
-```
-
----
-
-# 21. Advanced Backend Topics
-
-After the basics, study advanced topics.
-
-## Topics
-
-```text
-Caching strategies
-Distributed locks
-WebSockets
-Server-Sent Events
-File uploads
-Object storage
-Search engines
-Elasticsearch
-Meilisearch
-Payment integrations
-Webhooks
-Multi-tenancy
-Rate limiting
-Feature flags
-Audit logging
-Domain-driven design
-CQRS
-Event sourcing
-Outbox pattern
-Saga pattern
-Workflow orchestration
-```
-
----
-
-# 22. Recommended Learning Order
-
-Follow this order:
-
-```text
-1. Go basics
-2. HTTP APIs
-3. REST API design
-4. PostgreSQL and SQL
-5. Clean architecture
-6. Authentication
-7. Testing
-8. Docker
-9. Protocol Buffers
-10. Buf
-11. ConnectRPC
-12. gRPC
-13. Redis
-14. Background workers
-15. Messaging
-16. Temporal
-17. Microservices
-18. Kubernetes
-19. Observability
-20. Security and production hardening
-21. CI/CD
-22. Cloud deployment
-```
-
----
-
-# 23. Recommended Go Backend Stack
-
-For modern production backend development:
-
-```text
-Language:
-Go
-
-HTTP Router:
-chi
-
-Database:
-PostgreSQL
-
-DB Driver:
-pgx
-
-Query Tool:
-sqlc
-
-Migrations:
-goose or golang-migrate
-
-Cache:
-Redis
-
-Messaging:
-NATS / Kafka / Google Pub/Sub
-
-Workflow:
-Temporal
-
-API:
-REST + ConnectRPC + gRPC
-
-Proto:
-Protocol Buffers + Buf
-
-Auth:
-JWT + refresh token rotation
-
-Logging:
-slog or zap
-
-Testing:
-testing + testify + testcontainers-go
-
-Docs:
-OpenAPI / Swagger
-
-Deployment:
-Docker + Kubernetes / Cloud Run
-
-Monitoring:
-Prometheus + Grafana + OpenTelemetry
-```
-
----
-
-# 24. Project Roadmap
-
-## Project 1: Task API
-
-Build a simple task management API.
-
-## Features
-
-```text
-Create task
-Update task
-Delete task
-List tasks
-Mark task as complete
-```
-
-## Tech
-
-```text
-Go
-Chi
-PostgreSQL
-Docker
-```
-
----
-
-## Project 2: Auth Service
-
-Build a production-style authentication service.
-
-## Features
-
-```text
-Register
-Login
-Refresh token
-Logout
-Change password
-Role permissions
-Session management
-```
-
-## Tech
-
-```text
-Go
-PostgreSQL
-Redis
-JWT
-bcrypt
-Docker
-```
-
----
-
-## Project 3: E-commerce Backend
-
-Build an e-commerce backend.
-
-## Features
-
-```text
-Products
-Customers
-Orders
-Payments
-Inventory
-Notifications
-Admin APIs
-```
-
-## Tech
-
-```text
-Go
-PostgreSQL
-Redis
-Background workers
-Webhooks
-OpenAPI
-Docker Compose
-```
-
----
-
-## Project 4: ConnectRPC Backend
-
-Build a protobuf-based backend.
-
-## Services
-
-```text
-UserService
-AuthService
-ProductService
-OrderService
-```
-
-## Tech
-
-```text
-Go
-Protocol Buffers
-Buf
-ConnectRPC
-PostgreSQL
-sqlc
-chi
-```
-
----
-
-## Project 5: gRPC Microservices
-
-Build two or three services that communicate using gRPC.
-
-## Services
-
-```text
-customer-service
-order-service
-notification-service
-```
-
-## Learn
-
-```text
-gRPC clients
-gRPC servers
-Deadlines
-Metadata
-Interceptors
-Error handling
-Service-to-service authentication
-```
-
----
-
-## Project 6: Workflow-Based Backend
-
-Build a workflow-based order system.
-
-## Features
-
-```text
-Order workflow
-Payment workflow
-Notification workflow
-Retry failed tasks
-Audit events
-Human approval step
-```
-
-## Tech
-
-```text
-Go
-Temporal
-PostgreSQL
-Redis
-gRPC
-ConnectRPC
-```
-
----
-
-## Project 7: Microservices Platform
-
-Build a full microservice platform.
-
-## Services
-
-```text
-api-gateway
-auth-service
-customer-service
-order-service
-payment-service
-notification-service
-workflow-service
-```
-
-## Tech
-
-```text
-Go
-gRPC
-ConnectRPC
-Protocol Buffers
-Buf
-Temporal
-PostgreSQL
-Redis
-Docker Compose
-Kubernetes
-Prometheus
-Grafana
-OpenTelemetry
-```
-
----
-
-# 25. Six-Month Study Plan
-
-## Month 1: Go and HTTP
-
-Learn:
-
-```text
-Go syntax
-Structs
-Interfaces
-Errors
-Context
-HTTP server
-JSON APIs
-```
-
-Build:
-
-```text
-Simple REST API
-Task API
-Health check endpoint
-```
-
----
-
-## Month 2: PostgreSQL and Clean Architecture
-
-Learn:
-
-```text
-PostgreSQL
-SQL
-Indexes
-Transactions
-sqlc
-Migrations
-Clean architecture
-```
-
-Build:
-
-```text
-CRUD API with PostgreSQL
-Repository layer
-Service layer
-Migration setup
-```
-
----
-
-## Month 3: Authentication, Redis, and Testing
-
-Learn:
-
-```text
-JWT
-Refresh tokens
-Password hashing
-Redis
-Rate limiting
-Unit testing
-Integration testing
-```
-
-Build:
-
-```text
-Auth service
-Login/logout APIs
-Refresh token rotation
-Role-based access
-```
-
----
-
-## Month 4: Protobuf, Buf, ConnectRPC, and gRPC
-
-Learn:
-
-```text
-Protocol Buffers
-Buf
-ConnectRPC
-gRPC
-Interceptors
-Deadlines
-Metadata
-Generated clients
-```
-
-Build:
-
-```text
-UserService using ConnectRPC
-AuthService using ConnectRPC
-Service-to-service call using gRPC
-```
-
----
-
-## Month 5: Background Jobs, Messaging, and Temporal
-
-Learn:
-
-```text
-Redis queues
-NATS or Kafka
-Event-driven architecture
-Temporal workflows
-Saga pattern
-Outbox pattern
-```
-
-Build:
-
-```text
-Order workflow
-Payment workflow
-Notification worker
-Event publisher
-```
-
----
-
-## Month 6: Kubernetes, Observability, and Production
-
-Learn:
-
-```text
-Docker production builds
-Kubernetes
-Helm
-Prometheus
-Grafana
-OpenTelemetry
-CI/CD
-Security hardening
-```
-
-Build:
-
-```text
-Deploy microservices to Kubernetes
-Add monitoring dashboards
-Add tracing
-Add CI/CD pipeline
-```
-
----
-
-# 26. Final Target
-
-After this roadmap, you should be able to build:
-
-```text
-Production Go backend
-REST APIs
-ConnectRPC APIs
-gRPC microservices
-Protocol Buffer contracts
-PostgreSQL repositories
-Redis cache
-Background workers
-Temporal workflows
-Dockerized services
-Kubernetes-ready deployments
-Observable systems
-Secure authentication systems
-CI/CD pipelines
-```
-
----
-
-# 27. Best Stack for Enterprise Go Backend
-
-For your backend direction, the strongest stack is:
-
-```text
-Go
-PostgreSQL
-pgx
-sqlc
-chi
-Protocol Buffers
-Buf
-ConnectRPC
-gRPC
-Redis
-Temporal
-Docker
-Kubernetes
-Prometheus
-Grafana
-OpenTelemetry
-```
-
-This stack is excellent for:
-
-```text
-Enterprise backend systems
-Workflow engines
-BNPL platforms
-Payment systems
-Microservices
-Internal platforms
-Data processing systems
-Document processing systems
-```
+# Final Target
+
+After this roadmap you can design, build, secure, observe, deploy, and
+**operate** production Go systems: REST/ConnectRPC/gRPC APIs, protobuf
+contracts, PostgreSQL repositories, Redis caching, background workers, Temporal
+workflows, containerized and Kubernetes-ready services, full observability,
+secure auth — and you can reason about the runtime well enough to make them fast.
