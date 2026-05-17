@@ -591,29 +591,53 @@ implement it as an N+1 (one query per author), measure it, then rewrite as a
 single `JOIN ... GROUP BY` and show the `EXPLAIN ANALYZE` difference. Add an
 index that the planner actually uses and prove it does.
 
-## 🏛️ 3.5 Clean Architecture
+## 🏛️ 3.5 Clean Architecture & Domain-Driven Design (DDD)
+
+Clean Architecture says **dependencies point inward**: transport and database
+are details; the domain doesn't import them. **DDD** gives that inner core its
+shape — a model expressed in the language of the business.
 
 ```text
-🌐 Handler / Controller  →  🧠 Service / Usecase  →  🗄️ Repository  →  🐘 Database
+🌐 Handler / Controller  →  🧠 Application / Usecase  →  🟣 Domain (entities, VOs, aggregates)
+                                          ↘  🗄️ Repository (interface in domain, impl outside)  →  🐘 Database
+
+📏 The Dependency Rule: arrows only point toward the Domain. Domain imports nothing outward.
 ```
 
+- 🟣 **DDD tactical building blocks** — the shape of the inner core
+  - **Entity** — identity that persists over time (`User` is the same user even as fields change)
+  - **Value object** — defined only by its values, immutable (`Money`, `Email`, `Address`); validate on construction
+  - **Aggregate & aggregate root** — a consistency boundary; outside code touches the root only, never its internals
+  - **Domain service** — business logic that doesn't belong to a single entity (e.g., `TransferFunds` across two accounts)
+  - **Domain event** — something the business cares about happened (`OrderPlaced`); enables the Outbox/Saga patterns later (Level 4)
+- 🗣️ **DDD strategic concepts** — where boundaries go
+  - **Ubiquitous language** — code names match business words; no translation layer in conversation
+  - **Bounded context** — one model per context; "Customer" in Billing ≠ "Customer" in Support — don't force one shared model
+  - Map contexts to packages/services; integrate contexts via APIs/events, never shared structs
+- 🧠 **Layer responsibilities** (Clean Architecture × DDD)
+  - **Domain**: entities, value objects, aggregates, domain services, repository *interfaces* — pure Go, zero framework/SQL imports
+  - **Application/usecase**: orchestrates a use case, manages the transaction boundary, calls the domain — no business rules itself
+  - **Infrastructure**: repository *implementations* (pgx/sqlc), HTTP, Redis — depends on the domain, not vice versa
 - 🚫 **Thin handlers**
   - Handlers translate transport ↔ domain; no business rules in handlers
   - Map domain errors to HTTP status in one place
-- 🗄️ **Layer responsibilities**
-  - Repositories own data access; services own business rules; entities own invariants
 - 🧩 **Interfaces for seams**
-  - Use interfaces where they aid testing or decoupling — not everywhere
-  - Dependency injection via constructors, not globals
-- 🛑 **Avoid premature abstraction**
-  - Duplication is cheaper than the wrong abstraction
-  - Refactor toward patterns when the third use case appears, not the first
+  - Repository interface is **defined in the domain**, implemented in infrastructure (dependency inversion)
+  - Inject dependencies via constructors, not globals
+- 🐹 **Pragmatic Go DDD — don't cargo-cult it**
+  - Enforce **invariants inside the aggregate**, not in handlers or SQL
+  - Skip ceremony (no Java-style getters/setters); a value object is often just a small struct + a constructor that returns an error
+  - Reach for full DDD when the **domain is complex**; a CRUD table doesn't need an aggregate
 
 🧗 **Challenge:** Take a single 80-line "fat handler" that validates input, runs
-business rules, and does raw SQL. Refactor it into handler → service →
-repository, with the repository behind an interface. Write a unit test for the
-service using a fake repository (no database), and keep the handler under 15
-lines.
+business rules, and does raw SQL. Refactor it into handler → application →
+domain → repository, with the repository **interface defined in the domain**
+package and its pgx/sqlc implementation in infrastructure. Model the core
+concept as an **aggregate** with at least one **value object** (e.g., `Email`
+or `Money`) whose constructor rejects invalid values, and enforce one business
+**invariant inside the aggregate** (not in the handler or DB). Write a unit
+test that exercises the domain rule using a fake repository (no database), and
+keep the handler under 15 lines.
 
 ## 🔐 3.6 Authentication & Authorization
 
