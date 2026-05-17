@@ -6,6 +6,10 @@ This roadmap is organized into **5 levels**. 🪜 Each level has a clear goal �
 topics to learn 📚, practice projects 🧪, and a **mastery checklist** ✅ that gates
 progression. Do not skip levels — each one assumes the previous is solid. 🧱
 
+Every subsection ends with a 🧗 **Challenge** — a small, concrete problem to
+solve before moving on. If you can't do the challenge, you haven't learned the
+section yet. Reading is not knowing; shipping the challenge is.
+
 > 💡 **Mindset:** Becoming good at Go is less about memorizing features and more
 > about taste — knowing the *simple, boring, correct* way to do something and
 > doing that every time. This roadmap optimizes for taste, not trivia.
@@ -20,6 +24,8 @@ progression. Do not skip levels — each one assumes the previous is solid. 🧱
 - 🔨 **Build the project(s)** for every level before moving on. Reading ≠ knowing.
   - Type the code yourself; do not copy-paste.
   - Break it on purpose, then fix it — that's where understanding forms.
+- 🧗 **Do every section Challenge.** They're sized for one focused sitting.
+  - A challenge you "could probably do" is unfinished. Actually do it.
 - 🚧 **Treat each checklist as a gate, not a suggestion.** Be honest with yourself.
   - "I could probably do that" is a fail. "I did that, unaided" is a pass.
 - 📖 **Read code, not just tutorials.** The Go **standard library** is the best Go textbook ever written.
@@ -100,6 +106,11 @@ go clean -modcache              # 🧹 nuke the module cache when things get wei
 > 💡 **Tip:** Make `go fmt` automatic on save. Formatting is *not* a personal
 > style choice in Go — there is one true format and the tooling enforces it. 🤝
 
+🧗 **Challenge:** From an empty directory, create a module, add a single `main.go`,
+and write one shell script (`check.sh`) that runs `go fmt`, `go vet`, and
+`go test ./...` and exits non-zero if any step fails. Prove it fails by
+introducing a `go vet` warning, then make it pass.
+
 ## 📘 1.2 Language Basics
 
 The core of the language. Go is deliberately small — learn all of it.
@@ -163,6 +174,11 @@ func main() {
 > ⚠️ **Aliasing & nil-map bugs cause more beginner pain than anything else.**
 > Deliberately reproduce both until you can predict them in your sleep. 😴
 
+🧗 **Challenge:** Write a program that (a) demonstrates a slice-aliasing bug
+where modifying a sub-slice corrupts the original, then fixes it with `copy`;
+and (b) defines a `Weekday` type with `iota` and a `String()` method so
+`fmt.Println(Saturday)` prints `Saturday`, not `6`.
+
 ## ⚠️ 1.3 Errors From Day One
 
 Go's error handling is **explicit and value-based** — there are no exceptions. Learn it correctly *now*; bad habits are very hard to unlearn later. 🔒
@@ -187,6 +203,12 @@ if err != nil {
 - 🙅 **Discarding errors**
   - Never use `_` on an error unless you can *explain out loud* why it's safe
   - Common safe cases (and their reasoning): `fmt.Fprintf` to a buffer, `defer f.Close()` on a read-only file — know *why*
+
+🧗 **Challenge:** Write `parseConfig(path string) (Config, error)` that opens a
+file, reads it, and parses an `int`. Make all three failure points return a
+distinct, descriptive error (no discarded `_`). Then write a `main` that prints
+exactly which step failed for: a missing file, an unreadable file, and a file
+containing `not-a-number`.
 
 ## 🧪 Practice
 
@@ -236,6 +258,11 @@ Build all three. Small, but finish them. 🏁
   - Define them **where they're consumed**, not where implemented
   - Avoid speculative interfaces with a single implementation
 
+🧗 **Challenge:** Implement an `io.Writer` called `UpperWriter` that wraps another
+`io.Writer` and upper-cases ASCII letters before writing them through. Then
+write a function that returns `error` as a nil `*MyError` and demonstrate the
+`nil`-interface gotcha (the returned `error` is non-nil); fix it.
+
 ## ⚠️ 2.2 Errors, Properly
 
 - 🏁 **Sentinel errors**
@@ -272,6 +299,12 @@ if errors.Is(err, ErrNotFound) { /* ... */ }
 > 💡 Add context as the error travels *up* the stack. Each layer answers
 > "what was I doing when this failed?" 🧵
 
+🧗 **Challenge:** Build a tiny `store` package with a sentinel `ErrNotFound` and a
+typed `ValidationError{Field string}`. Add a 3-layer call chain
+(`handler → service → store`) that wraps the error with `%w` at each layer.
+Write tests proving `errors.Is(err, ErrNotFound)` **and**
+`errors.As(err, &ValidationError{})` still work from the top layer.
+
 ## 🧬 2.3 Generics
 
 - 🔧 **Type parameters & constraints**
@@ -289,6 +322,11 @@ if errors.Is(err, ErrNotFound) { /* ... */ }
 
 > 🧘 **Maturity signal:** choosing *not* to use generics when an interface or
 > plain function is clearer. Reach for the simplest tool that works.
+
+🧗 **Challenge:** Implement generic `Map[T,U]`, `Filter[T]`, and `Reduce[T,U]`.
+Use them to turn `[]string{"1","2","x","3"}` into the sum of the valid integers.
+Then write a one-off non-generic version of the same pipeline and write two
+sentences arguing which is clearer for this specific case.
 
 ## 📚 2.4 Standard Library Fluency
 
@@ -313,6 +351,12 @@ The stdlib is huge and excellent. Get comfortable in the daily-driver packages:
 
 > 📖 **Read the source** of these packages. They are written by experts to be
 > read by you — copy their style.
+
+🧗 **Challenge:** Write a program that streams a large JSON array of
+`{"name":..., "born":"2006-01-02"}` objects with `json.Decoder` (no full
+slurp), computes each person's age using `time`, and prints them sorted by age
+using `slices.SortFunc`. Add a custom `UnmarshalJSON` that parses `born`
+directly into a `time.Time`.
 
 ## 🧪 2.5 Testing & Project Layout
 
@@ -354,6 +398,12 @@ func TestAdd(t *testing.T) {
 ```
 
 > ✅ Table-driven tests should become a **reflex**, not a technique you recall.
+
+🧗 **Challenge:** Write a `slugify(s string) string` function (lowercase, spaces
+→ `-`, strip non-alphanumerics, collapse repeats). Reach **100% coverage** with
+a single table-driven test using subtests, including Unicode and empty-string
+cases. Add one golden-file test that compares a multi-line report against
+`testdata/expected.txt`.
 
 ## 🧪 Practice
 
@@ -428,6 +478,12 @@ go func() { wg.Wait(); close(results) }() // 🚪 close when all workers finish
 > gRPC/ConnectRPC, background jobs, Temporal activities, external calls.
 > Understand it *deeply*; it's the backbone of cancellation in real systems. 🦴
 
+🧗 **Challenge:** Build a bounded worker pool that processes 1,000 jobs with at
+most `N` concurrent workers, respects a `context` deadline, and returns the
+first error while cancelling the rest. It must pass `go test -race`. Then
+deliberately write a version that leaks a goroutine on early return, prove the
+leak with `runtime.NumGoroutine()`, and fix it.
+
 ## 🌐 3.2 HTTP Servers
 
 🏗️ Learn the **standard library first**, *before* any framework. `net/http` is excellent.
@@ -459,6 +515,13 @@ func main() {
 - 🧰 **Router choice**
   - **`net/http` + `chi`** (idiomatic, stdlib-compatible); alternatives: Gin, Echo, Fiber
 
+🧗 **Challenge:** Build a `net/http` server (no framework) exposing
+`GET /healthz` and `POST /echo` (returns the JSON body back). Add three
+composable middlewares: request-ID injection, structured request logging, and
+panic recovery (returns `500` JSON, never crashes). Implement
+`SIGINT`-triggered graceful shutdown with a 5-second drain deadline. Verify the
+recovery middleware with a handler that panics.
+
 ## 🔌 3.3 REST API Design
 
 ```http
@@ -482,6 +545,12 @@ PUT    /users/{id}   DELETE /users/{id}
 ```json
 { "code": "USER_NOT_FOUND", "message": "User not found" }
 ```
+
+🧗 **Challenge:** Design and implement `GET /articles` with **cursor-based**
+pagination (`?limit=&cursor=`), a `?status=` filter, and `?sort=` support.
+Return correct status codes, a `next_cursor` in the response, and a consistent
+error envelope for an invalid cursor (`400`, machine-readable `code`). Write the
+OpenAPI snippet for this one endpoint.
 
 ## 🐘 3.4 Databases (PostgreSQL)
 
@@ -516,6 +585,12 @@ if err != nil {
 > 💡 `sqlc` generates type-safe Go from SQL — you write SQL, it writes the
 > boilerplate. Fewer runtime surprises. 🎯
 
+🧗 **Challenge:** Model `authors` and `books` (one-to-many) with a migration.
+Write `sqlc` queries to list every author with their book count. First
+implement it as an N+1 (one query per author), measure it, then rewrite as a
+single `JOIN ... GROUP BY` and show the `EXPLAIN ANALYZE` difference. Add an
+index that the planner actually uses and prove it does.
+
 ## 🏛️ 3.5 Clean Architecture
 
 ```text
@@ -534,6 +609,12 @@ if err != nil {
   - Duplication is cheaper than the wrong abstraction
   - Refactor toward patterns when the third use case appears, not the first
 
+🧗 **Challenge:** Take a single 80-line "fat handler" that validates input, runs
+business rules, and does raw SQL. Refactor it into handler → service →
+repository, with the repository behind an interface. Write a unit test for the
+service using a fake repository (no database), and keep the handler under 15
+lines.
+
 ## 🔐 3.6 Authentication & Authorization
 
 - 🔑 **Password handling**
@@ -550,6 +631,13 @@ if err != nil {
 
 > 🛡️ Auth is where small mistakes become breaches. Slow down here. 🐢
 
+🧗 **Challenge:** Implement `register`, `login`, and `refresh`. Hash passwords
+with `bcrypt`. Issue a short-lived access JWT and a long-lived refresh token,
+store only the **hash** of the refresh token, and implement **rotation**:
+each refresh issues a new token and invalidates the old one. Add reuse
+detection — presenting an already-used refresh token revokes the whole token
+family. Write a test that proves reuse is detected.
+
 ## 🧪 3.7 Testing Strategy
 
 - 🧱 **Test layers**
@@ -559,6 +647,11 @@ if err != nil {
   - Mocks/fakes/stubs, `gomock`/`mockery`, mock at boundaries not internals
 - 🎯 **Prioritization**
   - Test the layers that hold business value first; assert behavior, not implementation
+
+🧗 **Challenge:** Write an integration test for your repository from 3.4 using
+`testcontainers-go` to spin up a real PostgreSQL, run migrations against it,
+exercise create + read + a `JOIN` query, and assert results. The test must be
+fully self-contained (no external DB) and pass with `go test ./... -race`.
 
 ## 🐳 3.8 Docker
 
@@ -581,6 +674,11 @@ ENTRYPOINT ["/server"]
   - Minimal/distroless base, non-root user, static binary (`CGO_ENABLED=0`)
 - 🧩 **Local environment**
   - Docker Compose for Postgres/Redis, healthchecks, deterministic seed data
+
+🧗 **Challenge:** Containerize your Level 3 service with a multi-stage build on a
+distroless base, running as a non-root user, with a final image under ~25 MB
+(`docker images` to prove it). Add a `docker-compose.yml` that brings up the
+app + PostgreSQL with a healthcheck so the app waits for the DB to be ready.
 
 ## 🧪 Practice — Project: Task API → Auth Service
 
@@ -688,6 +786,12 @@ return nil, status.Error(codes.NotFound, "user not found")
 return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 ```
 
+🧗 **Challenge:** Define a `user.v1` proto with `GetUser` and `CreateUser`. Wire
+up Buf (`buf.yaml` + `buf.gen.yaml`), generate code, and implement the service
+with ConnectRPC mounted on `net/http`. Map "not found" to `CodeNotFound`. Then
+make a **breaking change** (rename a field) and prove `buf breaking` catches it
+in CI before merge.
+
 ## ⚡ 4.2 Redis, Caching & Background Jobs
 
 - 🧰 **Use cases**
@@ -704,6 +808,12 @@ return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 
 > ⚠️ The two hard problems: cache **invalidation** and stampedes. Design for
 > them up front, not after the incident. 🔥
+
+🧗 **Challenge:** Implement a cache-aside `GetProduct(id)` backed by Redis with a
+jittered TTL. Add **stampede protection** using `singleflight` so 100 concurrent
+misses for the same key cause exactly **one** DB hit (prove it with a call
+counter). Separately, implement a safe distributed lock (`SET key token NX PX`)
+whose release is a Lua script that only deletes the key if the token matches.
 
 ## 📨 4.3 Messaging & Event-Driven Systems
 
@@ -725,6 +835,12 @@ return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 > 🧠 **Assume every message can arrive twice and out of order.** If your
 > consumer is idempotent, you've already won. 🏆
 
+🧗 **Challenge:** Implement the **outbox pattern**: writing an order and its
+`ORDER_CREATED` event happen in the **same DB transaction**; a separate
+publisher relays unsent rows to the broker. Write a consumer that is
+**idempotent** via a processed-`event_id` table. Prove correctness by delivering
+the same event three times and asserting exactly one side effect.
+
 ## 🔄 4.4 Temporal — Durable Workflows
 
 Use when processes need **retries, timeouts, human approval, compensation**, or
@@ -742,6 +858,12 @@ Use when processes need **retries, timeouts, human approval, compensation**, or
 - ⏲️ **Durability features** — timers, retry policies, signals/queries, child workflows, continue-as-new
 - 🧯 **Failure handling** — compensation/Saga, heartbeats for long activities, idempotent activities
 
+🧗 **Challenge:** Write an `OrderWorkflow` with activities `ChargePayment` and
+`ReserveStock`, each with a retry policy. Add a `Signal` for manual fraud
+approval that the workflow waits on with a 24h timer (auto-reject on timeout).
+If `ReserveStock` ultimately fails, run a `RefundPayment` compensation. Kill the
+worker mid-run and restart it to prove the workflow resumes from history.
+
 ## 🔧 4.5 Configuration & Secrets
 
 - ⚙️ **Configuration**
@@ -753,6 +875,12 @@ Use when processes need **retries, timeouts, human approval, compensation**, or
 
 > 🚨 A secret committed to Git is a leaked secret forever (even after `git rm`).
 > Rotate it, don't just delete it. 🔁
+
+🧗 **Challenge:** Build a `Load() (Config, error)` that reads env vars into a
+typed struct, applies defaults, and **fails fast** with a single aggregated
+error listing *every* missing/invalid field (not just the first). Add a test
+proving startup aborts when `DATABASE_URL` is absent and that secrets are never
+printed by the config's `String()`/log output.
 
 ## 📊 4.6 Logging & Observability
 
@@ -773,6 +901,12 @@ slog.Info("user created", "user_id", user.ID, "tenant", tenantID) // 🔑 key/va
 > 👀 You can't fix what you can't see. Observability is not optional in
 > production — it's how you sleep at night. 😴
 
+🧗 **Challenge:** Instrument the 3.2 service with `slog` (JSON handler, request
+ID in every log line), a Prometheus request-duration **histogram** labeled by
+route+status, and an OpenTelemetry trace per request. Make a second service it
+calls; propagate the trace context so a single trace ID spans both services and
+appears in both services' logs.
+
 ## 🛡️ 4.7 Security
 
 - 🔒 **Transport & input**
@@ -784,6 +918,11 @@ slog.Info("user created", "user_id", user.ID, "tenant", tenantID) // 🔑 key/va
   - `govulncheck`, dependency pinning, minimal images, least privilege, SBOM awareness
 - 🔐 **Data protection**
   - Encryption at rest and in transit; **never log** passwords, tokens, national IDs, card numbers
+
+🧗 **Challenge:** Run `govulncheck ./...` and resolve or document every finding.
+Add secure-header middleware (HSTS, `X-Content-Type-Options`, CSP). Write a test
+that fires a classic SQL-injection string (`' OR 1=1 --`) at a search endpoint
+and asserts it returns zero rows / no error — proving queries are parameterized.
 
 ## 🚢 4.8 Deployment & CI/CD
 
@@ -798,6 +937,12 @@ slog.Info("user created", "user_id", user.ID, "tenant", tenantID) // 🔑 key/va
 push → 🎨 fmt/vet → 🧪 go test ./... -race → 📜 buf lint/breaking
      → 🐳 docker build → 📤 push → 🔧 migrate → 🚀 deploy
 ```
+
+🧗 **Challenge:** Write a GitHub Actions workflow that runs
+`gofmt`-check → `go vet` → `go test ./... -race` → `buf lint` &
+`buf breaking` → `docker build` → push to a registry, with the image tagged by
+git SHA. Make CI fail on an unformatted file to prove the gate works, then make
+it green. Document the one-command rollback to the previous SHA.
 
 ## 🧪 Practice — Projects
 
@@ -843,6 +988,11 @@ push → 🎨 fmt/vet → 🧪 go test ./... -race → 📜 buf lint/breaking
 go build -gcflags='-m' ./...   # 🔬 see escape-analysis decisions
 ```
 
+🧗 **Challenge:** Write a function that builds and returns a `[]byte` and, using
+`-gcflags='-m'`, identify exactly why it escapes to the heap. Rewrite it (e.g.,
+caller-provided buffer) so the allocation stays on the stack / is reused, and
+prove the win with a `-benchmem` benchmark showing 0 allocs/op.
+
 ## 🚀 5.2 Performance Engineering
 
 - 📏 **Benchmarking**
@@ -865,6 +1015,12 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
 > 📊 **Measure, change one thing, measure again.** Performance work without a
 > profile is just superstition. 🔮
 
+🧗 **Challenge:** Take a deliberately slow JSON-processing function. Profile it
+with `pprof`, identify the top allocation hotspot, and cut allocations with
+`sync.Pool` and/or preallocation. Run the benchmark before and after with
+`-count=10` and use `benchstat` to show a **statistically significant**
+improvement (not noise).
+
 ## 🔀 5.3 Advanced Concurrency
 
 - 🔓 **Lock-free & atomics**
@@ -875,6 +1031,12 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
   - Detecting goroutine leaks (pprof goroutine profile), lock-ordering deadlocks
 - 🧭 **Cancellation design**
   - Making cancellation propagate everywhere; context-aware blocking calls only
+
+🧗 **Challenge:** Build a concurrent in-memory cache with a `RWMutex`. Benchmark
+it under heavy read contention, then replace the read path with `atomic.Pointer`
+to a snapshot map (copy-on-write) and show the throughput improvement. Separately,
+write a service with a goroutine leak, capture it via the pprof goroutine
+profile, and fix it with `context` cancellation.
 
 ## 🔬 5.4 Deep Language & Toolchain
 
@@ -892,6 +1054,12 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
   - `go vet`, `staticcheck`, `golangci-lint`, writing custom analyzers with `go/analysis`
 - 🐝 **Fuzzing**
   - `go test -fuzz`, seed corpus, finding inputs you didn't think of
+
+🧗 **Challenge:** Write a custom `go/analysis` analyzer that flags assignments
+that discard an `error` (`_ = someFuncReturningError()`), with a test using
+`analysistest`. Separately, fuzz a small parser (e.g., a CSV-line splitter) with
+`go test -fuzz`, let it find a crashing input, add it to the seed corpus, and
+fix the bug.
 
 ## 🌐 5.5 Distributed Systems & Microservices
 
@@ -913,6 +1081,12 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
 🔁 sync: REST/gRPC/ConnectRPC   📨 async: Kafka/NATS/PubSub   ⏳ durable: Temporal
 ```
 
+🧗 **Challenge:** Put a flaky downstream dependency (fails ~40% of the time,
+sometimes hangs) behind a client with a per-call timeout, retries with
+exponential backoff + jitter, and a circuit breaker. Drive load through it and
+show that callers get fast, degraded responses (a fallback) instead of cascading
+timeouts when the dependency is unhealthy.
+
 ## 🚨 5.6 Production Operations / SRE
 
 - 🎯 **Reliability targets**
@@ -925,12 +1099,24 @@ go tool pprof -http=:0 cpu.out   # 🔥 interactive flame graphs
 - 🧯 **Incident discipline**
   - On-call rotation, runbooks, blameless postmortems, error-budget-driven prioritization
 
+🧗 **Challenge:** Define one SLO for your service (e.g., "99% of `GET /x` <
+200 ms over 30 days"), expose the SLI from your metrics, and create a Grafana
+panel + alert that fires when the **error budget burn rate** is too high. Run a
+load test that intentionally violates the SLO and capture the alert firing;
+write a one-page blameless postmortem of the simulated incident.
+
 ## 🌟 5.7 Beyond the Code
 
 - 📖 **Read Go source** — `runtime`, `sync`, `net/http`, `context`; understand the *why*
 - 📰 **Track the language** — release notes, the proposal process, accepted/rejected proposals
 - 🤝 **Contribute** — open source, code review, issue triage
 - 🧑‍🏫 **Multiply yourself** — mentor, write design docs, defend trade-offs in public
+
+🧗 **Challenge:** Read `context/context.go` from the standard library end to end.
+Write a one-page design-doc-style summary: what problem it solves, the key
+trade-offs (e.g., `context.Value` as a string-typed bag), and one thing you'd
+have designed differently and why. Then open one small, real OSS pull request
+(docs fix, test, or bug) on a Go project.
 
 ## 🧪 Practice — Capstone: Microservices Platform 🏗️
 
